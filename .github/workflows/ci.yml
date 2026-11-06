@@ -11,6 +11,8 @@ permissions:
 jobs:
   test:
     strategy:
+      # Let every platform finish, so one failure doesn't hide the others' results.
+      fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
         node: [20, 22]
