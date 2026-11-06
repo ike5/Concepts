@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Install and setup help
+    url: https://ike5.github.io/concepts/#install
+    about: Per-agent install commands and how to turn Concepts on in a repository.
+  - name: Report a security vulnerability
+    url: https://github.com/ike5/concepts/security/advisories/new
+    about: Please report vulnerabilities privately, not in a public issue.

@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="400" viewBox="0 0 1280 400" role="img" aria-label="Concepts: learn from the code your AI just wrote.">
+  <defs>
+    <radialGradient id="glow" cx="50%" cy="45%" r="55%">
+      <stop offset="0" stop-color="#e4dfff"/>
+      <stop offset="1" stop-color="#f7f6f2"/>
+    </radialGradient>
+  </defs>
+  <rect width="1280" height="400" rx="24" fill="url(#glow)"/>
+  <rect x="0.5" y="0.5" width="1279" height="399" rx="23.5" fill="none" stroke="#e2e1da"/>
+
+  <!-- faint diagram sketches -->
+  <g fill="none" stroke="#a49bf2" stroke-width="2" stroke-linecap="round" opacity=".55">
+    <rect x="70" y="80" width="110" height="64" rx="12"/>
+    <path d="M180 112h70M240 104l10 8-10 8"/>
+    <path d="M262 92c0-10 80-10 80 0v44c0 10-80 10-80 0z"/><path d="M262 92c0 10 80 10 80 0"/>
+    <rect x="50" y="60" width="312" height="110" rx="18" stroke-dasharray="6 8"/>
+    <circle cx="1010" cy="290" r="34"/><circle cx="1190" cy="290" r="34"/>
+    <path d="M1044 276c40-28 72-28 112 0M1146 268l10 8-14 3"/>
+    <path d="M1156 304c-40 28-72 28-112 0M1054 312l-10-8 14-3"/>
+  </g>
+
+  <!-- mark -->
+  <g transform="translate(404 128)">
+    <rect width="88" height="88" rx="24" fill="#17181f"/>
+    <g fill="none" stroke="#c9c2ff" stroke-width="6.5" stroke-linecap="round" stroke-linejoin="round" transform="translate(4 4) scale(1.25)">
+      <rect x="11" y="13" width="18" height="15" rx="4"/><rect x="35" y="36" width="18" height="15" rx="4"/><path d="M29 20.5h8a7 7 0 0 1 7 7V36"/>
+    </g>
+  </g>
+  <text x="516" y="203" font-family="Manrope, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="84" font-weight="800" letter-spacing="-4" fill="#17181f">Concepts</text>
+  <text x="640" y="286" text-anchor="middle" font-family="'DM Sans', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="30" font-weight="600" fill="#4b3fc4">Learn from the code your AI just wrote.</text>
+  <text x="640" y="330" text-anchor="middle" font-family="'DM Sans', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="19" fill="#5a5c66">An MCP server that draws every commit as a system-design diagram</text>
+</svg>

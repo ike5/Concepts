@@ -1,0 +1,19 @@
+name: Feature request
+description: Suggest a new diagram view, shape, client or workflow.
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What you're trying to learn or do
+      description: The problem first, then the idea.
+    validations:
+      required: true
+  - type: textarea
+    id: idea
+    attributes:
+      label: What you'd like
+  - type: textarea
+    id: example
+    attributes:
+      label: An example commit or diagram (optional)

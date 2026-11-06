@@ -1,127 +1,197 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Concepts MCP</title>
-  <meta name="description" content="An MCP server that turns each commit into a hand-drawn diagram of the concepts it uses, so you keep learning from code your AI wrote.">
-  <style>
-    @font-face { font-family: "Concepts Hand"; src: url("assets/ConceptsHand.woff2") format("woff2"); font-display: swap; }
-    :root {
-      --bg: #fbfaf7; --surface: #ffffff; --ink: #1e1e1e; --muted: #5f6368; --line: #e4e1da;
-      --accent: #6965db; --accent-ink: #ffffff; --code-bg: #1e1e24; --code-ink: #e9e7f5; --soft: #f1f0ff;
-    }
-    @media (prefers-color-scheme: dark) {
-      :root:not([data-theme="light"]) {
-        --bg: #16161a; --surface: #1f1f25; --ink: #ecebe8; --muted: #a6a4ad; --line: #34333b;
-        --accent: #a8a5ff; --accent-ink: #16161a; --code-bg: #0f0f13; --code-ink: #e9e7f5; --soft: #26253a;
-      }
-    }
-    :root[data-theme="dark"] {
-      --bg: #16161a; --surface: #1f1f25; --ink: #ecebe8; --muted: #a6a4ad; --line: #34333b;
-      --accent: #a8a5ff; --accent-ink: #16161a; --code-bg: #0f0f13; --code-ink: #e9e7f5; --soft: #26253a;
-    }
-    * { box-sizing: border-box; }
-    body { margin: 0; background: var(--bg); color: var(--ink); font: 17px/1.6 system-ui, -apple-system, "Segoe UI", sans-serif; }
-    a { color: var(--accent); }
-    .wrap { max-width: 920px; margin: 0 auto; padding: 0 16px; }
-    header { padding: 64px 0 24px; }
-    h1, h2, .hand { font-family: "Concepts Hand", "Segoe Print", "Comic Sans MS", cursive; font-weight: 400; letter-spacing: 0; }
-    h1 { font-size: clamp(36px, 7vw, 60px); line-height: 1.1; margin: 0 0 16px; }
-    h2 { font-size: 30px; margin: 56px 0 12px; }
-    .lede { font-size: 20px; color: var(--muted); max-width: 680px; margin: 0; }
-    .card { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 24px; margin-top: 24px; }
-    .step { display: flex; align-items: baseline; gap: 12px; margin: 0 0 12px; }
-    .step b { font: 400 22px "Concepts Hand", cursive; color: var(--accent); }
-    .step strong { font-size: 18px; }
-    .row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 12px; }
-    .pills { display: flex; flex-wrap: wrap; gap: 8px; }
-    .pills button { border: 1px solid var(--line); background: transparent; color: var(--ink); border-radius: 999px; padding: 8px 14px; min-height: 40px; font: 600 14px system-ui, sans-serif; cursor: pointer; }
-    .pills button[aria-pressed="true"] { background: var(--soft); border-color: var(--accent); color: var(--ink); }
-    .cmd { display: flex; gap: 12px; align-items: flex-start; background: var(--code-bg); color: var(--code-ink); border-radius: 12px; padding: 14px 14px 14px 18px; }
-    .cmd code { flex: 1; min-width: 0; font: 14px/1.7 ui-monospace, "DM Mono", Menlo, monospace; white-space: pre-wrap; overflow-wrap: anywhere; padding-top: 4px; }
-    .btn { border: 0; border-radius: 10px; background: var(--accent); color: var(--accent-ink); font: 600 14px system-ui, sans-serif; padding: 10px 16px; min-height: 40px; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; }
-    .note { color: var(--muted); font-size: 14px; margin: 10px 0 0; }
-    .or { color: var(--muted); font-size: 14px; margin: 16px 0 8px; }
-    button:focus-visible, a:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
-    figure { margin: 24px 0 0; }
-    figure img { width: 100%; height: auto; display: block; border-radius: 16px; border: 1px solid var(--line); background: #fff; }
-    figcaption { color: var(--muted); font-size: 14px; margin-top: 8px; }
-    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr)); gap: 16px; }
-    .grid .card { margin: 0; }
-    .grid h3 { margin: 0 0 6px; font-size: 17px; }
-    .grid p { margin: 0; color: var(--muted); font-size: 15px; }
-    pre.tree { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 16px; overflow-x: auto; font: 14px/1.6 ui-monospace, Menlo, monospace; }
-    footer { padding: 56px 0 40px; color: var(--muted); font-size: 14px; }
-    [hidden] { display: none !important; }
-  </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Concepts · Learn from the code your AI just wrote</title>
+<meta name="description" content="Concepts is an open-source MCP server. After every commit, your coding agent draws the change as a system-design diagram and marks each concept it relies on.">
+<meta property="og:title" content="Concepts · Learn from the code your AI just wrote">
+<meta property="og:description" content="An MCP server that turns every commit into a hand-drawn system-design diagram of the concepts it uses.">
+<meta property="og:image" content="https://ike5.github.io/concepts/assets/example.svg">
+<meta name="theme-color" content="#f7f6f2">
+<link rel="icon" href="assets/logo.svg" type="image/svg+xml">
+<link rel="stylesheet" href="assets/site.css">
 </head>
 <body>
-  <div class="wrap">
-    <header>
-      <h1>Learn from the code<br>your AI just wrote.</h1>
-      <p class="lede">Concepts is an MCP server. After each commit, your agent draws the change as hand-drawn system-design diagrams and marks every concept it relies on (patterns, algorithms, protocols, APIs) right where it lives, with a note for each one.</p>
-    </header>
+<a class="skip" href="#main">Skip to content</a>
+<header class="wrap header">
+  <a class="brand" href="./"><span class="mark"><svg viewBox="0 0 24 24" fill="none" stroke="#c9c2ff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="7" height="6" rx="1.5"/><rect x="14" y="14" width="7" height="6" rx="1.5"/><path d="M10 7h4a3 3 0 0 1 3 3v4"/></svg></span><span>Concepts</span></a>
+  <nav class="nav" aria-label="Main navigation">
+    <a class="optional" href="#how">How it works</a>
+    <a class="optional" href="#views">Diagrams</a>
+    <a href="library.html">Library</a>
+    <a class="optional" href="#tools">Tools</a>
+    <a class="github" href="https://github.com/ike5/concepts">View on GitHub ↗</a>
+  </nav>
+</header>
 
-    <section class="card" id="install" aria-labelledby="step1">
-      <div class="row">
-        <p class="step" id="step1"><b>1</b><strong>Add the MCP to your agent</strong></p>
-        <div class="pills" role="group" aria-label="Install or uninstall">
+<main id="main">
+<section class="hero" id="top">
+  <div class="wrap">
+    <span class="eyebrow"><i class="dot"></i> An open-source MCP for your coding agent</span>
+    <h1>Learn from the code<br><span class="accent">your AI just wrote.</span></h1>
+    <p class="lede">After every commit, your agent draws the change as a system-design diagram and marks each concept it relies on, right where it lives.</p>
+
+    <div class="setup" id="install">
+      <div class="setup-head">
+        <strong>Add the MCP to your agent</strong>
+        <div class="mode" role="group" aria-label="Install or uninstall">
           <button type="button" data-mode="install" aria-pressed="true">Install</button>
           <button type="button" data-mode="uninstall" aria-pressed="false">Uninstall</button>
         </div>
       </div>
-      <div class="pills" role="group" aria-label="Choose your agent" style="margin-bottom:12px">
+      <div class="picker" role="group" aria-label="Choose your agent">
         <button type="button" data-client="claude" aria-pressed="true">Claude Code</button>
         <button type="button" data-client="codex" aria-pressed="false">Codex</button>
         <button type="button" data-client="cursor" aria-pressed="false">Cursor</button>
         <button type="button" data-client="vscode" aria-pressed="false">VS Code</button>
         <button type="button" data-client="other" aria-pressed="false">Any MCP client</button>
       </div>
-      <div class="cmd"><code id="command">claude mcp add --scope user concepts -- npx -y concepts-mcp@latest</code><button class="btn" type="button" data-copy="command">Copy</button></div>
-      <a class="btn" id="open-link" hidden style="margin-top:12px">Open in Cursor</a>
-      <p class="note" id="command-note" role="status" aria-live="polite">Needs Node.js 20+ and git. Paste into your terminal.</p>
-    </section>
-
-    <section class="card" aria-labelledby="step2">
-      <p class="step" id="step2"><b>2</b><strong>Turn it on in a repository</strong></p>
-      <p class="note" style="margin-top:0">Ask your agent. It asks whether to keep diagrams in the project or in your learning library, then writes the instructions into <code>AGENTS.md</code>.</p>
-      <div class="cmd" style="margin-top:12px"><code id="ask">Set up concept diagrams for this repo.</code><button class="btn" type="button" data-copy="ask">Copy</button></div>
-      <p class="or">Or run the setup yourself from the repository folder:</p>
-      <div class="cmd"><code id="init">npx -y concepts-mcp@latest init</code><button class="btn" type="button" data-copy="init">Copy</button></div>
-      <p class="note">From then on, the agent diagrams each commit it makes. Commits you make by hand are picked up the next time the agent runs.</p>
-    </section>
-
-    <h2>What you get for each commit</h2>
-    <figure>
-      <img src="assets/example.svg" alt="A hand-drawn diagram titled Retrying failed webhooks. An architecture view shows a customer calling the billing API, which writes to a new webhook outbox in the same transaction; a new delivery worker polls the outbox, posts to the customer endpoint, signs with stored keys and gives up into dead letters. A sequence view shows one failed attempt. Six numbered concept markers sit on the parts where each concept lives, with a key beside the diagrams." width="1480" height="1480" loading="lazy">
-      <figcaption>An example. Bold outlines are what the commit added, faded parts are the system around it, and each red number marks where a concept lives. Explanations go in the README next to it. The <code>.excalidraw</code> file opens in excalidraw.com, Obsidian or VS Code.</figcaption>
-    </figure>
-
-    <h2>How it works</h2>
-    <div class="grid">
-      <div class="card"><h3>Your agent does the thinking</h3><p>The MCP reads git and draws the files. The agent you already use picks out the concepts, so there's no extra API key or account.</p></div>
-      <div class="card"><h3>Nothing missed, no noise</h3><p>It tracks which commits have a diagram, so commits made by hand are picked up next time. Lockfiles and generated files stay out, and trivial commits are skipped.</p></div>
-      <div class="card"><h3>Diagrams, not paragraphs</h3><p>Architecture, sequence, flow, state machine and data-model views, as many as the change needs, with real shapes for databases, queues, people and decisions.</p></div>
-      <div class="card"><h3>A library that grows</h3><p>Each concept gets one Markdown note that collects every commit where it showed up. Notes you add yourself are kept.</p></div>
+      <div class="cmd"><code id="command">claude mcp add --scope user concepts -- npx -y concepts-mcp@latest</code><button class="btn primary" type="button" data-copy="command">Copy</button></div>
+      <a class="btn primary open-link" id="open-link" hidden>Open in Cursor</a>
+      <p class="copy-status" id="command-note" role="status" aria-live="polite">Needs Node.js 20+ and git. Paste into your terminal.</p>
+      <div class="setup-step">
+        <p>Then turn it on in a repository. Ask your agent, or run the setup yourself:</p>
+        <div class="row">
+          <span class="ask">“Set up concept diagrams for this repo.”</span>
+          <span class="or">or</span>
+          <code class="pill">npx -y concepts-mcp@latest init</code>
+        </div>
+      </div>
+    </div>
+    <p class="hint">Free and open source · Runs on your machine · Needs Node.js 20+ and git · No account or API key</p>
+    <div class="actions">
+      <a class="btn primary" href="#how">See how it works ↓</a>
+      <a class="btn secondary" href="library.html">Browse a real library</a>
     </div>
 
-    <h2>Where diagrams go</h2>
-    <p>You choose during setup: <strong>in the project</strong> (<code>docs/concepts/</code>, so they show up on GitHub) or <strong>in your learning library</strong> (<code>~/Desktop/ConceptLibrary/&lt;repo&gt;/</code>, or <code>~/ConceptLibrary/</code> when there's no Desktop folder), where every project adds to the same library.</p>
-    <pre class="tree">ConceptLibrary/
-  README.md                       every project
-  my-app/
-    README.md                     every diagram, newest first
-    commits/2026-11-06-3f9c2ab-retrying-failed-webhooks/
-      concepts.excalidraw         editable diagram
-      concepts.svg                preview
-      README.md                   the concepts, explained
-    notes/exponential-backoff.md  one note per concept</pre>
-
-    <footer>
-      Free for noncommercial use (<a href="https://github.com/ike5/concepts/blob/main/LICENSE.md">PolyForm Noncommercial 1.0.0</a>). Source on <a href="https://github.com/ike5/concepts">GitHub</a>. Diagrams use a Latin subset of the Virgil font (SIL OFL 1.1).
-    </footer>
+    <figure class="showcase">
+      <div class="float left" aria-hidden="true"><i>6</i>concepts found</div>
+      <div class="float right" aria-hidden="true"><small>Saved to</small><span>docs/concepts/commits/</span></div>
+      <div class="window">
+        <div class="windowbar"><i></i><i></i><i></i><span>3f9c2ab · Retrying failed webhooks · concepts.svg</span></div>
+        <img src="assets/example.svg" width="1483" height="1477" alt="A hand-drawn diagram titled Retrying failed webhooks. An architecture view shows a customer calling the billing API, which writes to a new webhook outbox in the same transaction; a new delivery worker polls the outbox, posts to the customer endpoint, signs with stored keys and gives up into dead letters. A sequence view shows one failed attempt. Six numbered concept markers sit on the parts where each concept lives.">
+        <figcaption>
+          <ol class="legend" aria-label="Concepts in this commit">
+            <li><b>1</b>Transactional outbox</li>
+            <li><b>2</b>Exponential backoff</li>
+            <li><b>3</b>Jitter</li>
+            <li><b>4</b>Idempotency keys</li>
+            <li><b>5</b>Dead-letter queue</li>
+            <li><b>6</b>HMAC signatures</li>
+          </ol>
+        </figcaption>
+      </div>
+    </figure>
   </div>
-  <script src="install.js" defer></script>
+</section>
+
+<section class="section white" id="how">
+  <div class="wrap">
+    <h2>From commit to understanding.</h2>
+    <p class="intro">The MCP reads git and draws the files. The agent you already use picks out the concepts.</p>
+    <div class="grid">
+      <article class="card"><span class="number">01</span><h3>Connect the MCP</h3><p>One command adds Concepts to your coding agent. It runs locally over stdio.</p></article>
+      <article class="card"><span class="number">02</span><h3>Your agent models each commit</h3><p>It reads the diff, chooses the views that teach it, and lists every concept worth learning.</p></article>
+      <article class="card"><span class="number">03</span><h3>You learn what it used</h3><p>A diagram, an explanation per concept, and a note that grows each time it shows up again.</p></article>
+    </div>
+
+    <div class="term" role="img" aria-label="Example agent session: after a commit, the agent calls get_unprocessed_commits, get_concept_library, reads the changed files, then record_commit_concepts, and one diagram is added.">
+      <div class="windowbar"><i></i><i></i><i></i><span>~/billing-service · coding agent</span></div>
+      <div class="termbody">
+        <p class="you">Add retries for failed webhooks, then commit</p>
+        <p><b>⏺</b> concepts · <em>get_unprocessed_commits</em> <span class="dim">1 commit · 3f9c2ab</span></p>
+        <p><b>⏺</b> concepts · <em>get_concept_library</em> <span class="dim">27 known concepts</span></p>
+        <p><b>⏺</b> Read <span class="dim">src/webhooks/outbox.ts, src/webhooks/worker.ts</span></p>
+        <p><b>⏺</b> concepts · <em>record_commit_concepts</em> <span class="dim">architecture + sequence · 6 concepts</span></p>
+        <p class="done">Added 1 diagram: <span class="path">docs/concepts/commits/2026-11-06-3f9c2ab-retrying-failed-webhooks/</span></p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="views">
+  <div class="wrap">
+    <h2>Diagrams, not paragraphs.</h2>
+    <p class="intro">Five views, as many as the change needs, with real shapes for databases, queues, people and decisions. Explanations go beside the diagram, never in it.</p>
+    <div class="views">
+      <article class="card">
+        <svg viewBox="0 0 160 72" fill="none" stroke="#17181f" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><rect x="14" y="22" width="40" height="28" rx="6"/><path d="M54 36h28M76 31l6 5-6 5"/><path d="M90 24c0-5 32-5 32 0v24c0 5-32 5-32 0z"/><path d="M90 24c0 5 32 5 32 0"/><rect x="6" y="12" width="126" height="48" rx="10" stroke="#a49bf2" stroke-dasharray="4 5"/></svg>
+        <h3>Architecture</h3><p>Components and how they talk</p>
+      </article>
+      <article class="card">
+        <svg viewBox="0 0 160 72" fill="none" stroke="#17181f" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M30 6v60M80 6v60M130 6v60" stroke="#a49bf2" stroke-dasharray="3 5"/><path d="M30 20h50M74 15l6 5-6 5"/><path d="M80 36h50M124 31l6 5-6 5"/><path d="M130 52H30M36 47l-6 5 6 5"/></svg>
+        <h3>Sequence</h3><p>Who calls whom, in order</p>
+      </article>
+      <article class="card">
+        <svg viewBox="0 0 160 72" fill="none" stroke="#17181f" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><rect x="6" y="24" width="36" height="24" rx="12"/><path d="M42 36h18"/><path d="M80 16l20 20-20 20-20-20z"/><path d="M100 36h18"/><rect x="118" y="24" width="36" height="24" rx="5"/></svg>
+        <h3>Flow</h3><p>Steps and decisions</p>
+      </article>
+      <article class="card">
+        <svg viewBox="0 0 160 72" fill="none" stroke="#17181f" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="34" cy="36" r="17"/><circle cx="126" cy="36" r="17"/><path d="M51 29c18-14 40-14 58 0M103 24l6 5-8 2"/><path d="M109 43c-18 14-40 14-58 0M57 48l-6-5 8-2"/></svg>
+        <h3>State</h3><p>States and transitions</p>
+      </article>
+      <article class="card">
+        <svg viewBox="0 0 160 72" fill="none" stroke="#17181f" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><rect x="8" y="8" width="54" height="56" rx="6"/><path d="M8 24h54M16 36h30M16 48h22"/><rect x="98" y="8" width="54" height="56" rx="6"/><path d="M98 24h54M106 36h30M106 48h22"/><path d="M62 36h36M90 30l8 6-8 6"/></svg>
+        <h3>Data model</h3><p>Entities and relationships</p>
+      </article>
+    </div>
+
+    <div class="split">
+      <div>
+        <h2>A library that grows<br><span class="accent">with every commit.</span></h2>
+        <p class="intro">Each concept gets one Markdown note that collects every commit where it showed up. Notes you add yourself are kept. You choose where it lives during setup.</p>
+        <ul class="where">
+          <li><span class="tag">project</span><code>docs/concepts/</code><span>shows up on GitHub</span></li>
+          <li><span class="tag">library</span><code>~/Desktop/ConceptLibrary/</code><span>just for you</span></li>
+        </ul>
+        <a class="btn secondary" href="library.html">Browse this repo’s library →</a>
+      </div>
+      <div class="window" role="img" aria-label="Example concept note: Exponential backoff, an algorithm, which appears in three commits.">
+        <div class="windowbar"><i></i><i></i><i></i><span>notes/exponential-backoff.md</span></div>
+        <div class="note-card">
+          <div class="note-head"><strong>Exponential backoff</strong><span class="kind">algorithm</span></div>
+          <p>Wait longer after each failure, so a struggling service gets room to recover instead of a flood of retries.</p>
+          <p class="small-label">Appears in 3 commits</p>
+          <ul class="appears">
+            <li><span>Retrying failed webhooks</span><code>3f9c2ab</code></li>
+            <li><span>Polling the export job</span><code>a81e0d4</code></li>
+            <li><span>Reconnecting the socket</span><code>77c2b19</code></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section white" id="tools">
+  <div class="wrap">
+    <h2>What your agent gets.</h2>
+    <p class="intro">Your agent does the thinking. The MCP gives it the workflow, the history and a renderer.</p>
+    <div class="tools">
+      <article class="card"><h3><code>get_concepts_instructions</code></h3><p>The workflow, so every commit is modeled the same way.</p></article>
+      <article class="card"><h3><code>setup_concepts</code></h3><p>Turns a repository on and writes the agent instructions.</p></article>
+      <article class="card"><h3><code>get_unprocessed_commits</code></h3><p>Commits without a diagram yet, with diffs sized to fit.</p></article>
+      <article class="card"><h3><code>get_concept_library</code></h3><p>Concepts already learned, so their notes are reused.</p></article>
+      <article class="card"><h3><code>record_commit_concepts</code></h3><p>Lays out and draws the diagrams, then updates the library.</p></article>
+      <article class="card dark"><h3>Private by design</h3><p>Runs on your machine. Your code never leaves it.</p></article>
+    </div>
+
+    <div class="cta">
+      <div><h2>Make every commit a lesson.</h2><p>One command, then keep coding.</p></div>
+      <div class="actions">
+        <a class="btn primary" href="#install">Install the MCP</a>
+        <a class="btn ghost" href="https://github.com/ike5/concepts/blob/main/CONTRIBUTING.md">How to contribute ↗</a>
+      </div>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer class="wrap footer">
+  <span>Concepts · Open-source MCP · <a href="https://github.com/ike5/concepts/blob/main/LICENSE.md">PolyForm Noncommercial 1.0.0</a><br>This site uses no cookies, analytics or third-party resources. It is hosted on GitHub Pages, which logs requests under the <a href="https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement">GitHub Privacy Statement</a>.</span>
+  <span><a href="./">Home</a> · <a href="library.html">Library</a> · <a href="https://github.com/ike5/concepts">GitHub</a> · <a href="https://www.npmjs.com/package/concepts-mcp">npm</a></span>
+</footer>
+<script src="install.js" defer></script>
 </body>
 </html>

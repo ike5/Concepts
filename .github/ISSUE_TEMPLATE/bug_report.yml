@@ -1,0 +1,36 @@
+name: Bug report
+description: Something doesn't work, or a diagram comes out wrong.
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: What you did, what you expected, and what happened instead. A screenshot of a broken diagram helps a lot.
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: concepts-mcp version
+      placeholder: "0.1.0"
+    validations:
+      required: true
+  - type: dropdown
+    id: client
+    attributes:
+      label: Agent
+      options: [Claude Code, Codex, Cursor, VS Code, Other MCP client]
+    validations:
+      required: true
+  - type: input
+    id: env
+    attributes:
+      label: OS and Node.js version
+      placeholder: "macOS 15, Node 22"
+  - type: textarea
+    id: record
+    attributes:
+      label: The record_commit_concepts input (optional)
+      description: If a diagram is wrong, paste the JSON the agent sent. Remove anything private.
+      render: json

@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Library · Concepts</title>
+<meta name="description" content="This repository's own concept library: every commit to Concepts, drawn as a system-design diagram by the tool it builds.">
+<meta name="theme-color" content="#f7f6f2">
+<link rel="icon" href="assets/logo.svg" type="image/svg+xml">
+<link rel="stylesheet" href="assets/site.css">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="wrap header">
+  <a class="brand" href="./"><span class="mark"><svg viewBox="0 0 24 24" fill="none" stroke="#c9c2ff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="7" height="6" rx="1.5"/><rect x="14" y="14" width="7" height="6" rx="1.5"/><path d="M10 7h4a3 3 0 0 1 3 3v4"/></svg></span><span>Concepts</span></a>
+  <nav class="nav" aria-label="Main navigation">
+    <a href="./">Home</a>
+    <a href="library.html" aria-current="page">Library</a>
+    <a class="optional" href="./#install">Install</a>
+    <a class="github" href="https://github.com/ike5/concepts">View on GitHub ↗</a>
+  </nav>
+</header>
+
+<main id="main">
+<section class="hero">
+  <div class="wrap">
+    <span class="eyebrow"><i class="dot"></i> Drawn by Concepts, about Concepts</span>
+    <h1>This repo’s own<br><span class="accent">concept library.</span></h1>
+    <p class="lede">Every commit to Concepts, diagrammed by the tool it builds. Open one to see what changed and what it teaches.</p>
+    <ul class="stats" aria-label="Library size">
+      <li><strong id="stat-diagrams">4</strong><span>diagrams</span></li>
+      <li><strong>33</strong><span>concepts</span></li>
+      <li><strong>11</strong><span>kinds</span></li>
+    </ul>
+  </div>
+</section>
+
+<section class="wrap" aria-label="Diagrams, newest first">
+  <div class="diagrams" id="diagrams">
+    <article class="diagram" data-sha="dbab40a">
+      <div class="thumb"><img src="concepts/commits/2026-11-06-dbab40a-breaking-a-commit-feedback-loop/concepts.svg" alt="State diagram: the loop before the fix." loading="lazy"></div>
+      <div class="body">
+        <div class="meta"><code>dbab40a</code><span class="kind">state</span><span>Nov 6, 2026</span></div>
+        <h2><a href="https://github.com/ike5/concepts/tree/main/docs/concepts/commits/2026-11-06-dbab40a-breaking-a-commit-feedback-loop">Breaking a commit feedback loop</a></h2>
+        <p>Automatic skips are now derived from each commit’s files instead of saved, so diagram commits stop creating new work.</p>
+        <p class="concepts">Derived vs stored state · Self-triggering feedback loops</p>
+      </div>
+    </article>
+    <article class="diagram" data-sha="5d04c47">
+      <div class="thumb"><img src="concepts/commits/2026-11-06-5d04c47-making-room-between-boundaries/concepts.svg" alt="Flow diagram: separating boundaries after layout." loading="lazy"></div>
+      <div class="body">
+        <div class="meta"><code>5d04c47</code><span class="kind">flow</span><span>Nov 6, 2026</span></div>
+        <h2><a href="https://github.com/ike5/concepts/tree/main/docs/concepts/commits/2026-11-06-5d04c47-making-room-between-boundaries">Making room between boundaries</a></h2>
+        <p>After layout, colliding boundary boxes get space inserted between them, repeated until nothing overlaps.</p>
+        <p class="concepts">Bounding-box intersection · Overlap removal by inserting space · Iterate until stable</p>
+      </div>
+    </article>
+    <article class="diagram" data-sha="26af3fb">
+      <div class="thumb"><img src="concepts/commits/2026-11-06-26af3fb-diagrams-become-system-design-models/concepts.svg" alt="Flow and data-model diagrams: from record to files, and what the agent sends." loading="lazy"></div>
+      <div class="body">
+        <div class="meta"><code>26af3fb</code><span class="kind">flow · data model</span><span>Nov 6, 2026</span></div>
+        <h2><a href="https://github.com/ike5/concepts/tree/main/docs/concepts/commits/2026-11-06-26af3fb-diagrams-become-system-design-models">Diagrams become system-design models</a></h2>
+        <p>The agent sends shaped views marked new, changed or existing; explanations move out of the picture into the README.</p>
+        <p class="concepts">Intermediate representation · Discriminated unions · Compound graph layout · +7 more</p>
+      </div>
+    </article>
+    <article class="diagram" data-sha="9931945">
+      <div class="thumb"><img src="concepts/commits/2026-11-06-9931945-concepts-mcp-an-mcp-server-that-draws-commits/concepts.svg" alt="Architecture, sequence and data-model diagrams of the first concepts-mcp release." loading="lazy"></div>
+      <div class="body">
+        <div class="meta"><code>9931945</code><span class="kind">architecture · sequence · data model</span><span>Nov 6, 2026</span></div>
+        <h2><a href="https://github.com/ike5/concepts/tree/main/docs/concepts/commits/2026-11-06-9931945-concepts-mcp-an-mcp-server-that-draws-commits">concepts-mcp: an MCP server that draws commits</a></h2>
+        <p>An agent talks to a local MCP server over stdio, which reads git, validates, lays out and writes the diagrams.</p>
+        <p class="concepts">Model Context Protocol · JSON-RPC over stdio · Git hooks · +15 more</p>
+      </div>
+    </article>
+  </div>
+</section>
+
+<section class="section white" aria-labelledby="by-kind">
+  <div class="wrap">
+    <h2 id="by-kind">Concepts by kind.</h2>
+    <p class="intro">Each one links to its note, which collects every commit where it showed up.</p>
+    <div class="kinds">
+      <div class="card"><span class="number">algorithm · 6</span><p><a href="https://github.com/ike5/concepts/blob/main/docs/concepts/notes/aabb-intersection.md">Bounding-box intersection</a>, <a href="https://github.com/ike5/concepts/blob/main/docs/concepts/notes/compound-graph-layout.md">compound graph layout</a>, <a href="https://github.com/ike5/concepts/blob/main/docs/concepts/notes/fixed-point-iteration.md">iterate until stable</a>, <a href="https://github.com/ike5/concepts/blob/main/docs/concepts/notes/layered-graph-layout.md">layered graph layout</a>, <a href="https://github.com/ike5/concepts/blob/main/docs/concepts/notes/space-insertion.md">overlap removal</a>, <a href="https://github.com/ike5/concepts/blob/main/docs/concepts/notes/sequence-layout.md">sequence diagram layout</a></p></div>
+      <div class="card"><span class="number">pattern · 6</span><p><a href="https://github.com/ike5/concepts/blob/main/docs/concepts/notes/atomic-write.md">Atomic file writes</a>, <a href="https://github.com/ike5/concepts/blob/main/docs/concepts/notes/derived-state.md">derived vs stored state</a>, <a href="https://github.com/ike5/concepts/blob/main/docs/concepts/notes/deterministic-ids.md">deterministic ids</a>, <a href="https://github.com/ike5/concepts/blob/main/docs/concepts/notes/idempotent-upsert.md">idempotent upsert</a>, <a href="https://github.com/ike5/concepts/blob/main/docs/concepts/notes/referential-integrity.md">referential integrity</a>, <a href="https://github.com/ike5/concepts/blob/main/docs/concepts/notes/processed-set.md">watermark + processed set</a></p></div>
+      <div class="card"><span class="number">tooling · 4</span><p><a href="https://github.com/ike5/concepts/blob/main/docs/concepts/notes/agents-md.md">AGENTS.md instructions</a>, <a href="https://github.com/ike5/concepts/blob/main/docs/concepts/notes/git-hooks.md">git hooks</a>, <a href="https://github.com/ike5/concepts/blob/main/docs/concepts/notes/git-plumbing.md">git rev-list and show</a>, <a href="https://github.com/ike5/concepts/blob/main/docs/concepts/notes/npm-bin-npx.md">npx and package bin</a></p></div>
+      <div class="card"><span class="number">concept · 4</span><p><a href="https://github.com/ike5/concepts/blob/main/docs/concepts/notes/feedback-loop.md">Self-triggering feedback loops</a>, <a href="https://github.com/ike5/concepts/blob/main/docs/concepts/notes/source-available-license.md">source-available licensing</a>, <a href="https://github.com/ike5/concepts/blob/main/docs/concepts/notes/uml-diagrams.md">system-design diagram types</a>, <a href="https://github.com/ike5/concepts/blob/main/docs/concepts/notes/visual-encoding.md">visual encoding</a></p></div>
+      <div class="card"><span class="number">library · 3 · language feature · 2</span><p><a href="https://github.com/ike5/concepts/blob/main/docs/concepts/notes/excalidraw-scene-format.md">Excalidraw scene format</a>, <a href="https://github.com/ike5/concepts/blob/main/docs/concepts/notes/rough-js.md">Rough.js</a>, <a href="https://github.com/ike5/concepts/blob/main/docs/concepts/notes/schema-validation.md">Zod schema validation</a>, <a href="https://github.com/ike5/concepts/blob/main/docs/concepts/notes/discriminated-union.md">discriminated unions</a>, <a href="https://github.com/ike5/concepts/blob/main/docs/concepts/notes/tty-detection.md">TTY detection</a></p></div>
+      <div class="card dark"><span class="number">protocol · security · performance · architecture · testing</span><p><a href="https://github.com/ike5/concepts/blob/main/docs/concepts/notes/model-context-protocol.md">Model Context Protocol</a>, <a href="https://github.com/ike5/concepts/blob/main/docs/concepts/notes/json-rpc-over-stdio.md">JSON-RPC over stdio</a>, <a href="https://github.com/ike5/concepts/blob/main/docs/concepts/notes/trusted-publishing.md">npm trusted publishing</a>, <a href="https://github.com/ike5/concepts/blob/main/docs/concepts/notes/path-traversal.md">path traversal prevention</a>, <a href="https://github.com/ike5/concepts/blob/main/docs/concepts/notes/diff-budgeting.md">context budgeting</a>, <a href="https://github.com/ike5/concepts/blob/main/docs/concepts/notes/font-subsetting.md">font subsetting</a>, <a href="https://github.com/ike5/concepts/blob/main/docs/concepts/notes/intermediate-representation.md">intermediate representation</a>, <a href="https://github.com/ike5/concepts/blob/main/docs/concepts/notes/invariant-testing.md">invariant-based tests</a></p></div>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer class="wrap footer">
+  <span>Concepts · Open-source MCP · <a href="https://github.com/ike5/concepts/blob/main/LICENSE.md">PolyForm Noncommercial 1.0.0</a><br>The full library, with every explanation, is in <a href="https://github.com/ike5/concepts/tree/main/docs/concepts">docs/concepts</a>.</span>
+  <span><a href="./">Home</a> · <a href="https://github.com/ike5/concepts">GitHub</a> · <a href="https://www.npmjs.com/package/concepts-mcp">npm</a></span>
+</footer>
+<script src="library.js" defer></script>
+</body>
+</html>
