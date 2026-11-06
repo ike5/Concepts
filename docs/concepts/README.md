@@ -1,11 +1,12 @@
 # Concepts learned in ike5-concepts
 
-4 diagrams · 33 concepts · 0 commits skipped
+5 diagrams · 36 concepts · 0 commits skipped
 
 ## Diagrams
 
 | Date | Commit | What it built | Concepts |
 | --- | --- | --- | --- |
+| 2026-11-06 | `7ca4c08` | [Who expands a glob?](commits/2026-11-06-7ca4c08-who-expands-a-glob/README.md) | [Who expands a glob](notes/glob-expansion.md), [Test runner discovery](notes/test-discovery.md), [Matrix fail-fast](notes/ci-fail-fast.md) |
 | 2026-11-06 | `dbab40a` | [Breaking a commit feedback loop](commits/2026-11-06-dbab40a-breaking-a-commit-feedback-loop/README.md) | [Derived vs stored state](notes/derived-state.md), [Self-triggering feedback loops](notes/feedback-loop.md) |
 | 2026-11-06 | `5d04c47` | [Making room between boundaries](commits/2026-11-06-5d04c47-making-room-between-boundaries/README.md) | [Bounding-box intersection](notes/aabb-intersection.md), [Overlap removal by inserting space](notes/space-insertion.md), [Iterate until stable](notes/fixed-point-iteration.md) |
 | 2026-11-06 | `26af3fb` | [Diagrams become system-design models](commits/2026-11-06-26af3fb-diagrams-become-system-design-models/README.md) | [Intermediate representation](notes/intermediate-representation.md), [Discriminated unions](notes/discriminated-union.md), [System-design diagram types](notes/uml-diagrams.md), [Compound graph layout](notes/compound-graph-layout.md), [Sequence diagram layout](notes/sequence-layout.md), [Referential integrity checks](notes/referential-integrity.md), [Visual encoding](notes/visual-encoding.md), [Excalidraw scene format](notes/excalidraw-scene-format.md), [Invariant-based tests](notes/invariant-testing.md), [Source-available licensing](notes/source-available-license.md) |
@@ -31,6 +32,6 @@
 
 **security:** [npm trusted publishing (OIDC)](notes/trusted-publishing.md) · [Path traversal prevention](notes/path-traversal.md)
 
-**testing:** [Invariant-based tests](notes/invariant-testing.md)
+**testing:** [Invariant-based tests](notes/invariant-testing.md) · [Test runner discovery](notes/test-discovery.md)
 
-**tooling:** [AGENTS.md instructions](notes/agents-md.md) · [Git hooks](notes/git-hooks.md) · [git rev-list and show](notes/git-plumbing.md) · [npx and package bin](notes/npm-bin-npx.md)
+**tooling:** [AGENTS.md instructions](notes/agents-md.md) · [Git hooks](notes/git-hooks.md) · [git rev-list and show](notes/git-plumbing.md) · [Matrix fail-fast](notes/ci-fail-fast.md) · [npx and package bin](notes/npm-bin-npx.md) · [Who expands a glob](notes/glob-expansion.md)

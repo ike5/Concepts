@@ -69,6 +69,18 @@
         "derived-state",
         "feedback-loop"
       ]
+    },
+    "7ca4c0834f3f2ab63e7451d5d2346c32b18764a9": {
+      "shortSha": "7ca4c08",
+      "date": "2026-11-06T04:43:59+00:00",
+      "subject": "Fix CI on Node 20: let node --test discover test files",
+      "title": "Who expands a glob?",
+      "folder": "commits/2026-11-06-7ca4c08-who-expands-a-glob",
+      "concepts": [
+        "glob-expansion",
+        "test-discovery",
+        "ci-fail-fast"
+      ]
     }
   },
   "concepts": {
@@ -885,6 +897,82 @@
             {
               "path": "packages/concepts-mcp/test/server.test.js",
               "lines": "never dirties the output folder"
+            }
+          ]
+        }
+      ]
+    },
+    "glob-expansion": {
+      "name": "Who expands a glob",
+      "kind": "tooling",
+      "level": "beginner",
+      "explanation": "A pattern like *.js is usually expanded by the shell before a program starts. Quoting it hands the program the literal text, so the program must expand it itself, and not every program or version can. Windows shells don't expand globs at all.",
+      "prerequisites": [],
+      "learnMore": [],
+      "sightings": [
+        {
+          "sha": "7ca4c0834f3f2ab63e7451d5d2346c32b18764a9",
+          "shortSha": "7ca4c08",
+          "date": "2026-11-06T04:43:59+00:00",
+          "title": "Who expands a glob?",
+          "folder": "commits/2026-11-06-7ca4c08-who-expands-a-glob",
+          "whyHere": "The quoted pattern reached Node 20's test runner unexpanded, and that runner treats arguments as file paths.",
+          "files": [
+            {
+              "path": "packages/concepts-mcp/package.json",
+              "lines": "scripts.test"
+            }
+          ]
+        }
+      ]
+    },
+    "test-discovery": {
+      "name": "Test runner discovery",
+      "kind": "testing",
+      "level": "beginner",
+      "explanation": "With no file arguments, node --test searches the project for files that look like tests (names ending in .test.js, files under test/ folders) and runs them, skipping node_modules.",
+      "prerequisites": [],
+      "learnMore": [
+        {
+          "title": "Node.js test runner: running tests",
+          "url": "https://nodejs.org/api/test.html#running-tests-from-the-command-line"
+        }
+      ],
+      "sightings": [
+        {
+          "sha": "7ca4c0834f3f2ab63e7451d5d2346c32b18764a9",
+          "shortSha": "7ca4c08",
+          "date": "2026-11-06T04:43:59+00:00",
+          "title": "Who expands a glob?",
+          "folder": "commits/2026-11-06-7ca4c08-who-expands-a-glob",
+          "whyHere": "Discovery works the same on Node 20, 22 and later, on every OS, with no pattern to expand.",
+          "files": [
+            {
+              "path": "packages/concepts-mcp/package.json",
+              "lines": "scripts.test"
+            }
+          ]
+        }
+      ]
+    },
+    "ci-fail-fast": {
+      "name": "Matrix fail-fast",
+      "kind": "tooling",
+      "level": "beginner",
+      "explanation": "GitHub Actions cancels the rest of a job matrix as soon as one job fails, unless fail-fast is false. That saves minutes but hides whether the other platforms would have passed.",
+      "prerequisites": [],
+      "learnMore": [],
+      "sightings": [
+        {
+          "sha": "7ca4c0834f3f2ab63e7451d5d2346c32b18764a9",
+          "shortSha": "7ca4c08",
+          "date": "2026-11-06T04:43:59+00:00",
+          "title": "Who expands a glob?",
+          "folder": "commits/2026-11-06-7ca4c08-who-expands-a-glob",
+          "whyHere": "One Linux failure cancelled the macOS and Windows jobs; now each platform reports its own result.",
+          "files": [
+            {
+              "path": ".github/workflows/ci.yml"
             }
           ]
         }
