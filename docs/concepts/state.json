@@ -1,5 +1,835 @@
 {
   "version": 1,
-  "commits": {},
-  "concepts": {}
+  "commits": {
+    "9931945be2731bec1e22a1d80d6fda1cbe2716c6": {
+      "shortSha": "9931945",
+      "date": "2026-11-06T01:53:11+00:00",
+      "subject": "Add concepts-mcp: commit concept diagrams in Excalidraw style",
+      "title": "concepts-mcp: an MCP server that draws commits",
+      "folder": "commits/2026-11-06-9931945-concepts-mcp-an-mcp-server-that-draws-commits",
+      "concepts": [
+        "model-context-protocol",
+        "json-rpc-over-stdio",
+        "tty-detection",
+        "agents-md",
+        "idempotent-upsert",
+        "git-hooks",
+        "git-plumbing",
+        "processed-set",
+        "diff-budgeting",
+        "schema-validation",
+        "path-traversal",
+        "layered-graph-layout",
+        "rough-js",
+        "deterministic-ids",
+        "font-subsetting",
+        "atomic-write",
+        "npm-bin-npx",
+        "trusted-publishing"
+      ]
+    },
+    "26af3fb4c544c71ef8a11eb77ecbe3b87820b6fe": {
+      "shortSha": "26af3fb",
+      "date": "2026-11-06T04:33:11+00:00",
+      "subject": "Redraw diagrams as system-design models; switch to PolyForm Noncommercial",
+      "title": "Diagrams become system-design models",
+      "folder": "commits/2026-11-06-26af3fb-diagrams-become-system-design-models",
+      "concepts": [
+        "intermediate-representation",
+        "discriminated-union",
+        "uml-diagrams",
+        "compound-graph-layout",
+        "sequence-layout",
+        "referential-integrity",
+        "visual-encoding",
+        "excalidraw-scene-format",
+        "invariant-testing",
+        "source-available-license"
+      ]
+    },
+    "5d04c4790df8be7e9a0524351c5b3d876718b577": {
+      "shortSha": "5d04c47",
+      "date": "2026-11-06T04:36:42+00:00",
+      "subject": "Keep boundary boxes from overlapping",
+      "title": "Making room between boundaries",
+      "folder": "commits/2026-11-06-5d04c47-making-room-between-boundaries",
+      "concepts": [
+        "aabb-intersection",
+        "space-insertion",
+        "fixed-point-iteration"
+      ]
+    }
+  },
+  "concepts": {
+    "model-context-protocol": {
+      "name": "Model Context Protocol",
+      "kind": "protocol",
+      "level": "intermediate",
+      "explanation": "An open protocol that lets AI apps call tools provided by separate programs. A server describes its tools (name, description, input schema); the client, here the agent, decides when to call them and gets structured results back.",
+      "prerequisites": [],
+      "learnMore": [
+        {
+          "title": "MCP specification",
+          "url": "https://modelcontextprotocol.io/specification"
+        }
+      ],
+      "sightings": [
+        {
+          "sha": "9931945be2731bec1e22a1d80d6fda1cbe2716c6",
+          "shortSha": "9931945",
+          "date": "2026-11-06T01:53:11+00:00",
+          "title": "concepts-mcp: an MCP server that draws commits",
+          "folder": "commits/2026-11-06-9931945-concepts-mcp-an-mcp-server-that-draws-commits",
+          "whyHere": "It's how any agent (Claude Code, Cursor, Codex) can use the same diagramming tools without custom integrations.",
+          "files": [
+            {
+              "path": "packages/concepts-mcp/src/server.js"
+            }
+          ]
+        }
+      ]
+    },
+    "json-rpc-over-stdio": {
+      "name": "JSON-RPC over stdio",
+      "kind": "protocol",
+      "level": "intermediate",
+      "explanation": "The client starts the server as a child process and they exchange JSON-RPC messages over its standard input and output. No network port or HTTP server is needed.",
+      "prerequisites": [],
+      "learnMore": [],
+      "sightings": [
+        {
+          "sha": "9931945be2731bec1e22a1d80d6fda1cbe2716c6",
+          "shortSha": "9931945",
+          "date": "2026-11-06T01:53:11+00:00",
+          "title": "concepts-mcp: an MCP server that draws commits",
+          "folder": "commits/2026-11-06-9931945-concepts-mcp-an-mcp-server-that-draws-commits",
+          "whyHere": "The server runs locally next to the repository, so stdio keeps it private and needs no setup beyond npx.",
+          "files": [
+            {
+              "path": "packages/concepts-mcp/src/index.js"
+            }
+          ]
+        }
+      ]
+    },
+    "tty-detection": {
+      "name": "TTY detection",
+      "kind": "language-feature",
+      "level": "beginner",
+      "explanation": "process.stdin.isTTY tells a program whether a person is typing at a terminal or another program is piping data in.",
+      "prerequisites": [],
+      "learnMore": [],
+      "sightings": [
+        {
+          "sha": "9931945be2731bec1e22a1d80d6fda1cbe2716c6",
+          "shortSha": "9931945",
+          "date": "2026-11-06T01:53:11+00:00",
+          "title": "concepts-mcp: an MCP server that draws commits",
+          "folder": "commits/2026-11-06-9931945-concepts-mcp-an-mcp-server-that-draws-commits",
+          "whyHere": "One binary is both the MCP server (piped stdin) and a CLI; at a terminal it shows help instead of silently waiting.",
+          "files": [
+            {
+              "path": "packages/concepts-mcp/src/index.js",
+              "lines": "9-13"
+            }
+          ]
+        }
+      ]
+    },
+    "agents-md": {
+      "name": "AGENTS.md instructions",
+      "kind": "tooling",
+      "level": "beginner",
+      "explanation": "A Markdown file at the repository root that coding agents read for project instructions. Claude Code reads CLAUDE.md, which can import it with @AGENTS.md.",
+      "prerequisites": [],
+      "learnMore": [
+        {
+          "title": "agents.md",
+          "url": "https://agents.md/"
+        }
+      ],
+      "sightings": [
+        {
+          "sha": "9931945be2731bec1e22a1d80d6fda1cbe2716c6",
+          "shortSha": "9931945",
+          "date": "2026-11-06T01:53:11+00:00",
+          "title": "concepts-mcp: an MCP server that draws commits",
+          "folder": "commits/2026-11-06-9931945-concepts-mcp-an-mcp-server-that-draws-commits",
+          "whyHere": "The MCP server can't run on its own after a commit; the instruction file is what tells the agent to call it.",
+          "files": [
+            {
+              "path": "packages/concepts-mcp/src/agents.js"
+            }
+          ]
+        }
+      ]
+    },
+    "idempotent-upsert": {
+      "name": "Idempotent marker-block upsert",
+      "kind": "pattern",
+      "level": "intermediate",
+      "explanation": "Write generated text between start/end markers, and replace only that block on later runs. Running setup twice gives the same file, and everything outside the markers is left alone.",
+      "prerequisites": [],
+      "learnMore": [],
+      "sightings": [
+        {
+          "sha": "9931945be2731bec1e22a1d80d6fda1cbe2716c6",
+          "shortSha": "9931945",
+          "date": "2026-11-06T01:53:11+00:00",
+          "title": "concepts-mcp: an MCP server that draws commits",
+          "folder": "commits/2026-11-06-9931945-concepts-mcp-an-mcp-server-that-draws-commits",
+          "whyHere": "init edits AGENTS.md and the post-commit hook, files that already belong to the user.",
+          "files": [
+            {
+              "path": "packages/concepts-mcp/src/agents.js",
+              "lines": "upsertBlock, installHook"
+            }
+          ]
+        }
+      ]
+    },
+    "git-hooks": {
+      "name": "Git hooks",
+      "kind": "tooling",
+      "level": "beginner",
+      "explanation": "Scripts git runs at points in its workflow. post-commit runs after every commit and can't block it.",
+      "prerequisites": [],
+      "learnMore": [],
+      "sightings": [
+        {
+          "sha": "9931945be2731bec1e22a1d80d6fda1cbe2716c6",
+          "shortSha": "9931945",
+          "date": "2026-11-06T01:53:11+00:00",
+          "title": "concepts-mcp: an MCP server that draws commits",
+          "folder": "commits/2026-11-06-9931945-concepts-mcp-an-mcp-server-that-draws-commits",
+          "whyHere": "The hook prints a reminder that a commit is waiting; its output also reaches an agent that ran git commit.",
+          "files": [
+            {
+              "path": "packages/concepts-mcp/src/agents.js",
+              "lines": "installHook"
+            }
+          ]
+        }
+      ]
+    },
+    "git-plumbing": {
+      "name": "git rev-list and show",
+      "kind": "tooling",
+      "level": "intermediate",
+      "explanation": "Low-level git commands that scripts use: rev-list prints commit ids in a range, and show prints one commit's metadata, file stats or patch in a format you choose.",
+      "prerequisites": [],
+      "learnMore": [],
+      "sightings": [
+        {
+          "sha": "9931945be2731bec1e22a1d80d6fda1cbe2716c6",
+          "shortSha": "9931945",
+          "date": "2026-11-06T01:53:11+00:00",
+          "title": "concepts-mcp: an MCP server that draws commits",
+          "folder": "commits/2026-11-06-9931945-concepts-mcp-an-mcp-server-that-draws-commits",
+          "whyHere": "They list commits since setup and extract each diff without depending on any git library.",
+          "files": [
+            {
+              "path": "packages/concepts-mcp/src/git.js"
+            }
+          ]
+        }
+      ]
+    },
+    "processed-set": {
+      "name": "Watermark + processed set",
+      "kind": "pattern",
+      "level": "intermediate",
+      "explanation": "Remember where you started (a watermark) and which items are done, then compute the work left as 'everything after the watermark minus what's done'. Nothing is missed and nothing is done twice, however irregularly the job runs.",
+      "prerequisites": [],
+      "learnMore": [],
+      "sightings": [
+        {
+          "sha": "9931945be2731bec1e22a1d80d6fda1cbe2716c6",
+          "shortSha": "9931945",
+          "date": "2026-11-06T01:53:11+00:00",
+          "title": "concepts-mcp: an MCP server that draws commits",
+          "folder": "commits/2026-11-06-9931945-concepts-mcp-an-mcp-server-that-draws-commits",
+          "whyHere": "Agents don't run after every commit, so the server works out what's pending from git history instead of trusting the last commit.",
+          "files": [
+            {
+              "path": "packages/concepts-mcp/src/core.js",
+              "lines": "pending"
+            }
+          ]
+        }
+      ]
+    },
+    "diff-budgeting": {
+      "name": "Context budgeting",
+      "kind": "performance",
+      "level": "intermediate",
+      "explanation": "Fit what you send a language model into a size limit on purpose: drop low-value content and share the remaining space fairly instead of cutting off at an arbitrary point.",
+      "prerequisites": [],
+      "learnMore": [],
+      "sightings": [
+        {
+          "sha": "9931945be2731bec1e22a1d80d6fda1cbe2716c6",
+          "shortSha": "9931945",
+          "date": "2026-11-06T01:53:11+00:00",
+          "title": "concepts-mcp: an MCP server that draws commits",
+          "folder": "commits/2026-11-06-9931945-concepts-mcp-an-mcp-server-that-draws-commits",
+          "whyHere": "Lockfiles and generated files are removed and each changed file gets a fair share of the diff budget.",
+          "files": [
+            {
+              "path": "packages/concepts-mcp/src/git.js",
+              "lines": "commitDiff"
+            }
+          ]
+        }
+      ]
+    },
+    "schema-validation": {
+      "name": "Schema validation with Zod",
+      "kind": "library",
+      "level": "intermediate",
+      "explanation": "Describe the expected shape of data once and check untrusted input against it at runtime, getting precise errors back. MCP tool schemas are generated from the same definitions.",
+      "prerequisites": [],
+      "learnMore": [
+        {
+          "title": "Zod",
+          "url": "https://zod.dev/"
+        }
+      ],
+      "sightings": [
+        {
+          "sha": "9931945be2731bec1e22a1d80d6fda1cbe2716c6",
+          "shortSha": "9931945",
+          "date": "2026-11-06T01:53:11+00:00",
+          "title": "concepts-mcp: an MCP server that draws commits",
+          "folder": "commits/2026-11-06-9931945-concepts-mcp-an-mcp-server-that-draws-commits",
+          "whyHere": "Everything the agent sends is checked before any file is written, including links and file-name ids.",
+          "files": [
+            {
+              "path": "packages/concepts-mcp/src/schema.js"
+            }
+          ]
+        }
+      ]
+    },
+    "path-traversal": {
+      "name": "Path traversal prevention",
+      "kind": "security",
+      "level": "intermediate",
+      "explanation": "If user-supplied text becomes part of a file path, values like ../../ can escape the intended folder. Restricting ids to a safe pattern closes that hole.",
+      "prerequisites": [],
+      "learnMore": [],
+      "sightings": [
+        {
+          "sha": "9931945be2731bec1e22a1d80d6fda1cbe2716c6",
+          "shortSha": "9931945",
+          "date": "2026-11-06T01:53:11+00:00",
+          "title": "concepts-mcp: an MCP server that draws commits",
+          "folder": "commits/2026-11-06-9931945-concepts-mcp-an-mcp-server-that-draws-commits",
+          "whyHere": "Concept ids become note file names, so they must match a lowercase slug pattern.",
+          "files": [
+            {
+              "path": "packages/concepts-mcp/src/schema.js",
+              "lines": "slug"
+            }
+          ]
+        }
+      ]
+    },
+    "layered-graph-layout": {
+      "name": "Layered graph layout",
+      "kind": "algorithm",
+      "level": "advanced",
+      "explanation": "The Sugiyama method draws directed graphs in layers: assign nodes to ranks, reorder each rank to reduce crossing edges, then set coordinates. dagre implements it.",
+      "prerequisites": [],
+      "learnMore": [
+        {
+          "title": "Layered graph drawing",
+          "url": "https://en.wikipedia.org/wiki/Layered_graph_drawing"
+        }
+      ],
+      "sightings": [
+        {
+          "sha": "9931945be2731bec1e22a1d80d6fda1cbe2716c6",
+          "shortSha": "9931945",
+          "date": "2026-11-06T01:53:11+00:00",
+          "title": "concepts-mcp: an MCP server that draws commits",
+          "folder": "commits/2026-11-06-9931945-concepts-mcp-an-mcp-server-that-draws-commits",
+          "whyHere": "The agent only says what connects to what; dagre decides where every box goes.",
+          "files": [
+            {
+              "path": "packages/concepts-mcp/src/scene.js"
+            }
+          ]
+        }
+      ]
+    },
+    "rough-js": {
+      "name": "Hand-drawn rendering with Rough.js",
+      "kind": "library",
+      "level": "beginner",
+      "explanation": "Rough.js turns shapes into slightly wobbly, sketch-like strokes. It is the library behind Excalidraw's look and can output SVG paths without a browser.",
+      "prerequisites": [],
+      "learnMore": [],
+      "sightings": [
+        {
+          "sha": "9931945be2731bec1e22a1d80d6fda1cbe2716c6",
+          "shortSha": "9931945",
+          "date": "2026-11-06T01:53:11+00:00",
+          "title": "concepts-mcp: an MCP server that draws commits",
+          "folder": "commits/2026-11-06-9931945-concepts-mcp-an-mcp-server-that-draws-commits",
+          "whyHere": "The SVG preview matches the Excalidraw file's style and renders on GitHub.",
+          "files": [
+            {
+              "path": "packages/concepts-mcp/src/svg.js"
+            }
+          ]
+        }
+      ]
+    },
+    "deterministic-ids": {
+      "name": "Deterministic ids from hashes",
+      "kind": "pattern",
+      "level": "intermediate",
+      "explanation": "Derive ids and random seeds by hashing stable input instead of generating random ones, so the same input always produces byte-identical output.",
+      "prerequisites": [],
+      "learnMore": [],
+      "sightings": [
+        {
+          "sha": "9931945be2731bec1e22a1d80d6fda1cbe2716c6",
+          "shortSha": "9931945",
+          "date": "2026-11-06T01:53:11+00:00",
+          "title": "concepts-mcp: an MCP server that draws commits",
+          "folder": "commits/2026-11-06-9931945-concepts-mcp-an-mcp-server-that-draws-commits",
+          "whyHere": "Re-rendering a commit produces the same .excalidraw file, so git diffs stay clean.",
+          "files": [
+            {
+              "path": "packages/concepts-mcp/src/excalidraw.js",
+              "lines": "seeded"
+            }
+          ]
+        }
+      ]
+    },
+    "font-subsetting": {
+      "name": "Font subsetting",
+      "kind": "performance",
+      "level": "intermediate",
+      "explanation": "Strip a font down to the characters you need so it is small enough to embed. Fonts under the SIL Open Font License must be renamed when modified if they have a reserved name.",
+      "prerequisites": [],
+      "learnMore": [],
+      "sightings": [
+        {
+          "sha": "9931945be2731bec1e22a1d80d6fda1cbe2716c6",
+          "shortSha": "9931945",
+          "date": "2026-11-06T01:53:11+00:00",
+          "title": "concepts-mcp: an MCP server that draws commits",
+          "folder": "commits/2026-11-06-9931945-concepts-mcp-an-mcp-server-that-draws-commits",
+          "whyHere": "A Latin subset of Virgil is embedded in every SVG so the hand-drawn text shows on GitHub, renamed Concepts Hand.",
+          "files": [
+            {
+              "path": "packages/concepts-mcp/fonts/LICENSE-FONT.md"
+            }
+          ]
+        }
+      ]
+    },
+    "atomic-write": {
+      "name": "Atomic file writes",
+      "kind": "pattern",
+      "level": "intermediate",
+      "explanation": "Write to a temporary file, then rename it over the real one. A rename is atomic, so a crash leaves either the old file or the new one, never half of each.",
+      "prerequisites": [],
+      "learnMore": [],
+      "sightings": [
+        {
+          "sha": "9931945be2731bec1e22a1d80d6fda1cbe2716c6",
+          "shortSha": "9931945",
+          "date": "2026-11-06T01:53:11+00:00",
+          "title": "concepts-mcp: an MCP server that draws commits",
+          "folder": "commits/2026-11-06-9931945-concepts-mcp-an-mcp-server-that-draws-commits",
+          "whyHere": "state.json is the record of what's been processed; a torn write would lose it.",
+          "files": [
+            {
+              "path": "packages/concepts-mcp/src/state.js"
+            }
+          ]
+        }
+      ]
+    },
+    "npm-bin-npx": {
+      "name": "npx and package bin",
+      "kind": "tooling",
+      "level": "beginner",
+      "explanation": "A package's bin field names the command it provides. npx downloads the package if needed and runs that command, so users never install anything globally.",
+      "prerequisites": [],
+      "learnMore": [],
+      "sightings": [
+        {
+          "sha": "9931945be2731bec1e22a1d80d6fda1cbe2716c6",
+          "shortSha": "9931945",
+          "date": "2026-11-06T01:53:11+00:00",
+          "title": "concepts-mcp: an MCP server that draws commits",
+          "folder": "commits/2026-11-06-9931945-concepts-mcp-an-mcp-server-that-draws-commits",
+          "whyHere": "Every agent's MCP config is just `npx -y concepts-mcp@latest`.",
+          "files": [
+            {
+              "path": "packages/concepts-mcp/package.json"
+            }
+          ]
+        }
+      ]
+    },
+    "trusted-publishing": {
+      "name": "npm trusted publishing (OIDC)",
+      "kind": "security",
+      "level": "advanced",
+      "explanation": "Instead of storing a long-lived npm token as a secret, the CI job proves its identity with a short-lived OpenID Connect token that npm trusts for this repository and workflow, and npm records provenance.",
+      "prerequisites": [],
+      "learnMore": [
+        {
+          "title": "npm trusted publishing",
+          "url": "https://docs.npmjs.com/trusted-publishers"
+        }
+      ],
+      "sightings": [
+        {
+          "sha": "9931945be2731bec1e22a1d80d6fda1cbe2716c6",
+          "shortSha": "9931945",
+          "date": "2026-11-06T01:53:11+00:00",
+          "title": "concepts-mcp: an MCP server that draws commits",
+          "folder": "commits/2026-11-06-9931945-concepts-mcp-an-mcp-server-that-draws-commits",
+          "whyHere": "Releases publish from a tag with no secret to leak.",
+          "files": [
+            {
+              "path": ".github/workflows/publish-npm.yml"
+            }
+          ]
+        }
+      ]
+    },
+    "intermediate-representation": {
+      "name": "Intermediate representation",
+      "kind": "architecture",
+      "level": "intermediate",
+      "explanation": "A neutral in-between format that one stage produces and several back ends consume, like a compiler's IR. Each back end only needs to understand the simple format, not the stage before it.",
+      "prerequisites": [],
+      "learnMore": [],
+      "sightings": [
+        {
+          "sha": "26af3fb4c544c71ef8a11eb77ecbe3b87820b6fe",
+          "shortSha": "26af3fb",
+          "date": "2026-11-06T04:33:11+00:00",
+          "title": "Diagrams become system-design models",
+          "folder": "commits/2026-11-06-26af3fb-diagrams-become-system-design-models",
+          "whyHere": "Layout emits a flat list of rectangles, ellipses, lines, arrows and text; the Excalidraw and SVG writers both draw exactly that list, so they can't drift apart.",
+          "files": [
+            {
+              "path": "packages/concepts-mcp/src/scene.js",
+              "lines": "Canvas"
+            },
+            {
+              "path": "packages/concepts-mcp/src/excalidraw.js"
+            },
+            {
+              "path": "packages/concepts-mcp/src/svg.js"
+            }
+          ]
+        }
+      ]
+    },
+    "discriminated-union": {
+      "name": "Discriminated unions",
+      "kind": "language-feature",
+      "level": "intermediate",
+      "explanation": "A type that is one of several shapes, told apart by a tag field. Checking the tag tells you which fields exist, so validation and code can branch safely.",
+      "prerequisites": [],
+      "learnMore": [],
+      "sightings": [
+        {
+          "sha": "26af3fb4c544c71ef8a11eb77ecbe3b87820b6fe",
+          "shortSha": "26af3fb",
+          "date": "2026-11-06T04:33:11+00:00",
+          "title": "Diagrams become system-design models",
+          "folder": "commits/2026-11-06-26af3fb-diagrams-become-system-design-models",
+          "whyHere": "A view's `type` decides whether it has nodes and edges or participants and messages; Zod validates each branch with its own schema.",
+          "files": [
+            {
+              "path": "packages/concepts-mcp/src/schema.js",
+              "lines": "viewSchema"
+            }
+          ]
+        }
+      ]
+    },
+    "uml-diagrams": {
+      "name": "System-design diagram types",
+      "kind": "concept",
+      "level": "beginner",
+      "explanation": "Standard ways to draw software: architecture (components and connections), sequence (messages over time), flowchart (steps and decisions), state machine (states and transitions) and data model (entities and relationships). Each answers a different question about a system.",
+      "prerequisites": [],
+      "learnMore": [
+        {
+          "title": "The C4 model for software architecture",
+          "url": "https://c4model.com/"
+        }
+      ],
+      "sightings": [
+        {
+          "sha": "26af3fb4c544c71ef8a11eb77ecbe3b87820b6fe",
+          "shortSha": "26af3fb",
+          "date": "2026-11-06T04:33:11+00:00",
+          "title": "Diagrams become system-design models",
+          "folder": "commits/2026-11-06-26af3fb-diagrams-become-system-design-models",
+          "whyHere": "Picking the right view for a change is what makes the diagram teach instead of just listing words.",
+          "files": []
+        }
+      ]
+    },
+    "compound-graph-layout": {
+      "name": "Compound graph layout",
+      "kind": "algorithm",
+      "level": "advanced",
+      "explanation": "Graph layout where some nodes contain others (clusters), so members are placed together and their boundary can be drawn around them.",
+      "prerequisites": [
+        "Layered graph layout"
+      ],
+      "learnMore": [],
+      "sightings": [
+        {
+          "sha": "26af3fb4c544c71ef8a11eb77ecbe3b87820b6fe",
+          "shortSha": "26af3fb",
+          "date": "2026-11-06T04:33:11+00:00",
+          "title": "Diagrams become system-design models",
+          "folder": "commits/2026-11-06-26af3fb-diagrams-become-system-design-models",
+          "whyHere": "Boundaries such as services, layers or trust zones are dagre clusters, so their members are laid out side by side.",
+          "files": [
+            {
+              "path": "packages/concepts-mcp/src/scene.js",
+              "lines": "layoutGraph"
+            }
+          ]
+        }
+      ]
+    },
+    "sequence-layout": {
+      "name": "Sequence diagram layout",
+      "kind": "algorithm",
+      "level": "beginner",
+      "explanation": "Participants sit in columns with a dashed lifeline below each; time runs downward, one row per message. It needs no graph algorithm, just columns and rows.",
+      "prerequisites": [],
+      "learnMore": [],
+      "sightings": [
+        {
+          "sha": "26af3fb4c544c71ef8a11eb77ecbe3b87820b6fe",
+          "shortSha": "26af3fb",
+          "date": "2026-11-06T04:33:11+00:00",
+          "title": "Diagrams become system-design models",
+          "folder": "commits/2026-11-06-26af3fb-diagrams-become-system-design-models",
+          "whyHere": "Sequence views can't use the graph layout: their order is the point, so they get their own simple grid.",
+          "files": [
+            {
+              "path": "packages/concepts-mcp/src/scene.js",
+              "lines": "layoutSequence"
+            }
+          ]
+        }
+      ]
+    },
+    "referential-integrity": {
+      "name": "Referential integrity checks",
+      "kind": "pattern",
+      "level": "intermediate",
+      "explanation": "When records point at each other by id, check every reference resolves before accepting the data, the way a database enforces foreign keys.",
+      "prerequisites": [],
+      "learnMore": [],
+      "sightings": [
+        {
+          "sha": "26af3fb4c544c71ef8a11eb77ecbe3b87820b6fe",
+          "shortSha": "26af3fb",
+          "date": "2026-11-06T04:33:11+00:00",
+          "title": "Diagrams become system-design models",
+          "folder": "commits/2026-11-06-26af3fb-diagrams-become-system-design-models",
+          "whyHere": "Edges must name nodes in their view, nodes must name real groups, and every appearsIn must name a real part; ids must be unique across views.",
+          "files": [
+            {
+              "path": "packages/concepts-mcp/src/schema.js",
+              "lines": "checkRecord"
+            }
+          ]
+        }
+      ]
+    },
+    "visual-encoding": {
+      "name": "Visual encoding",
+      "kind": "concept",
+      "level": "intermediate",
+      "explanation": "Map each kind of information to a visual property people read at a glance (shape, color, line weight, dash) and use it consistently, with a key.",
+      "prerequisites": [],
+      "learnMore": [],
+      "sightings": [
+        {
+          "sha": "26af3fb4c544c71ef8a11eb77ecbe3b87820b6fe",
+          "shortSha": "26af3fb",
+          "date": "2026-11-06T04:33:11+00:00",
+          "title": "Diagrams become system-design models",
+          "folder": "commits/2026-11-06-26af3fb-diagrams-become-system-design-models",
+          "whyHere": "Shape says what a part is, fill color its role, outline weight whether this commit added it, dashes whether a message is async, and red numbers mark concepts.",
+          "files": [
+            {
+              "path": "packages/concepts-mcp/src/scene.js",
+              "lines": "look, EDGE"
+            }
+          ]
+        }
+      ]
+    },
+    "excalidraw-scene-format": {
+      "name": "Excalidraw scene format",
+      "kind": "library",
+      "level": "intermediate",
+      "explanation": "An .excalidraw file is JSON: a list of elements (shapes, arrows, text, frames) with positions and style. Text can be bound to a container, arrows bound to the shapes they connect, and elements placed inside frames.",
+      "prerequisites": [],
+      "learnMore": [],
+      "sightings": [
+        {
+          "sha": "26af3fb4c544c71ef8a11eb77ecbe3b87820b6fe",
+          "shortSha": "26af3fb",
+          "date": "2026-11-06T04:33:11+00:00",
+          "title": "Diagrams become system-design models",
+          "folder": "commits/2026-11-06-26af3fb-diagrams-become-system-design-models",
+          "whyHere": "Each view becomes a frame; bindings are written both ways so the diagram stays connected when you edit it.",
+          "files": [
+            {
+              "path": "packages/concepts-mcp/src/excalidraw.js"
+            }
+          ]
+        }
+      ]
+    },
+    "invariant-testing": {
+      "name": "Invariant-based tests",
+      "kind": "testing",
+      "level": "intermediate",
+      "explanation": "Instead of comparing output to a saved picture, assert properties that must always hold, such as no overlapping boxes, every part inside its frame, every reference bound both ways. They survive harmless layout changes.",
+      "prerequisites": [],
+      "learnMore": [],
+      "sightings": [
+        {
+          "sha": "26af3fb4c544c71ef8a11eb77ecbe3b87820b6fe",
+          "shortSha": "26af3fb",
+          "date": "2026-11-06T04:33:11+00:00",
+          "title": "Diagrams become system-design models",
+          "folder": "commits/2026-11-06-26af3fb-diagrams-become-system-design-models",
+          "whyHere": "Layout output changes whenever spacing is tuned; the tests check what must stay true.",
+          "files": [
+            {
+              "path": "packages/concepts-mcp/test/diagram.test.js"
+            }
+          ]
+        }
+      ]
+    },
+    "source-available-license": {
+      "name": "Source-available licensing",
+      "kind": "concept",
+      "level": "beginner",
+      "explanation": "Publishing code people can read, use and modify while limiting some uses. PolyForm Noncommercial allows noncommercial use and changes but forbids commercial use; unlike open-source licenses such as MIT, it restricts who may use it.",
+      "prerequisites": [],
+      "learnMore": [
+        {
+          "title": "PolyForm licenses",
+          "url": "https://polyformproject.org/licenses/"
+        }
+      ],
+      "sightings": [
+        {
+          "sha": "26af3fb4c544c71ef8a11eb77ecbe3b87820b6fe",
+          "shortSha": "26af3fb",
+          "date": "2026-11-06T04:33:11+00:00",
+          "title": "Diagrams become system-design models",
+          "folder": "commits/2026-11-06-26af3fb-diagrams-become-system-design-models",
+          "whyHere": "The project switched from MIT so nobody can sell it.",
+          "files": [
+            {
+              "path": "LICENSE.md"
+            }
+          ]
+        }
+      ]
+    },
+    "aabb-intersection": {
+      "name": "Bounding-box intersection",
+      "kind": "algorithm",
+      "level": "beginner",
+      "explanation": "Two axis-aligned rectangles overlap only if they overlap on both the x axis and the y axis. The overlap on each axis is min(right edges) − max(left edges).",
+      "prerequisites": [],
+      "learnMore": [],
+      "sightings": [
+        {
+          "sha": "5d04c4790df8be7e9a0524351c5b3d876718b577",
+          "shortSha": "5d04c47",
+          "date": "2026-11-06T04:36:42+00:00",
+          "title": "Making room between boundaries",
+          "folder": "commits/2026-11-06-5d04c47-making-room-between-boundaries",
+          "whyHere": "It detects colliding boundaries, and the smaller of the two overlaps is the cheapest direction to push them apart.",
+          "files": [
+            {
+              "path": "packages/concepts-mcp/src/scene.js",
+              "lines": "separateGroups"
+            }
+          ]
+        }
+      ]
+    },
+    "space-insertion": {
+      "name": "Overlap removal by inserting space",
+      "kind": "algorithm",
+      "level": "intermediate",
+      "explanation": "To separate two things without wrecking a layout, draw a line between them and move everything beyond the line by the same amount. Relative order is kept, so the picture only stretches.",
+      "prerequisites": [
+        "Bounding-box intersection"
+      ],
+      "learnMore": [],
+      "sightings": [
+        {
+          "sha": "5d04c4790df8be7e9a0524351c5b3d876718b577",
+          "shortSha": "5d04c47",
+          "date": "2026-11-06T04:36:42+00:00",
+          "title": "Making room between boundaries",
+          "folder": "commits/2026-11-06-5d04c47-making-room-between-boundaries",
+          "whyHere": "Parts, edge routes and labels past the cut all move together; each arrow's ends follow their own node so arrows stay attached.",
+          "files": [
+            {
+              "path": "packages/concepts-mcp/src/scene.js",
+              "lines": "separateGroups"
+            }
+          ]
+        }
+      ]
+    },
+    "fixed-point-iteration": {
+      "name": "Iterate until stable",
+      "kind": "algorithm",
+      "level": "beginner",
+      "explanation": "Repeat a fixing step until a pass changes nothing, with a cap on passes so it always ends. Fixing one problem can create another, so a single pass isn't enough.",
+      "prerequisites": [],
+      "learnMore": [],
+      "sightings": [
+        {
+          "sha": "5d04c4790df8be7e9a0524351c5b3d876718b577",
+          "shortSha": "5d04c47",
+          "date": "2026-11-06T04:36:42+00:00",
+          "title": "Making room between boundaries",
+          "folder": "commits/2026-11-06-5d04c47-making-room-between-boundaries",
+          "whyHere": "Opening one gap can make other boxes collide, so the check runs again, at most 40 times.",
+          "files": [
+            {
+              "path": "packages/concepts-mcp/src/scene.js",
+              "lines": "separateGroups"
+            }
+          ]
+        }
+      ]
+    }
+  }
 }
