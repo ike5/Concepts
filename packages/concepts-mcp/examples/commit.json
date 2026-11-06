@@ -1,0 +1,34 @@
+{
+  "commit": "3f9c2ab",
+  "title": "Retrying failed webhooks with backoff",
+  "summary": "Webhook deliveries that fail are retried on a schedule that waits longer each time, and receivers can safely see the same event twice. The big idea: a retry is only safe when the receiver can tell it's a repeat.",
+  "concepts": [
+    { "id": "exponential-backoff", "name": "Exponential backoff", "kind": "algorithm", "level": "intermediate",
+      "explanation": "Wait longer after each failure, doubling the delay every time (1s, 2s, 4s, 8s…). It gives a struggling server room to recover instead of hammering it with retries.",
+      "whyHere": "Failed deliveries are rescheduled with delay = base × 2^attempt, capped at one hour.",
+      "files": [{ "path": "src/webhooks/retry.ts", "lines": "12-40" }],
+      "learnMore": [{ "title": "Exponential backoff and jitter (AWS)", "url": "https://aws.amazon.com/blogs/architecture/exponential-backoff-and-jitter/" }] },
+    { "id": "jitter", "name": "Jitter", "kind": "algorithm", "level": "intermediate",
+      "explanation": "Add a random amount to each wait. Without it, every client that failed at the same moment retries at the same moment too.",
+      "whyHere": "Each delay is randomized between 0 and the backoff value (\"full jitter\").",
+      "files": [{ "path": "src/webhooks/retry.ts", "lines": "22" }], "prerequisites": ["Exponential backoff"] },
+    { "id": "idempotency-key", "name": "Idempotency keys", "kind": "pattern", "level": "intermediate",
+      "explanation": "A unique ID sent with a request so the receiver can recognize a repeat and skip doing the work twice.",
+      "whyHere": "Every delivery carries an Idempotency-Key header equal to the event ID, so retries can't double-charge.",
+      "files": [{ "path": "src/webhooks/send.ts", "lines": "31" }] },
+    { "id": "dead-letter-queue", "name": "Dead-letter queue", "kind": "architecture", "level": "intermediate",
+      "explanation": "A holding area for messages that kept failing, so they stop retrying forever but aren't lost.",
+      "whyHere": "After 8 attempts a delivery moves to the webhook_dead_letters table for manual replay.",
+      "files": [{ "path": "src/webhooks/retry.ts", "lines": "52-60" }, { "path": "migrations/0042_dead_letters.sql" }] },
+    { "id": "hmac-signature", "name": "HMAC signatures", "kind": "security", "level": "advanced",
+      "explanation": "A hash of the message made with a shared secret. The receiver recomputes it to prove the message came from you and wasn't changed.",
+      "whyHere": "Each payload is signed with SHA-256 HMAC and a timestamp so receivers can reject forged or replayed webhooks.",
+      "files": [{ "path": "src/webhooks/sign.ts" }] }
+  ],
+  "relations": [
+    { "from": "jitter", "to": "exponential-backoff", "label": "spreads out" },
+    { "from": "exponential-backoff", "to": "dead-letter-queue", "label": "gives up into" },
+    { "from": "exponential-backoff", "to": "idempotency-key", "label": "is safe because of" },
+    { "from": "hmac-signature", "to": "idempotency-key", "label": "protects" }
+  ]
+}

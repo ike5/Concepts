@@ -1,0 +1,47 @@
+name: Publish npm package
+
+# Publishes packages/concepts-mcp as concepts-mcp, which people run with `npx -y concepts-mcp@latest`.
+# Uses npm trusted publishing (OIDC), so no npm token is stored in the repository.
+# One-time setup on npmjs.com: package settings → Trusted publishing → GitHub Actions,
+# repository ike5/concepts, workflow publish-npm.yml.
+on:
+  workflow_dispatch:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: publish-npm
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: packages/concepts-mcp
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          registry-url: https://registry.npmjs.org
+      - name: Use an npm with trusted publishing (11.5.1+)
+        run: npm install -g npm@11
+      - run: npm ci
+      - run: npm test
+      - name: Skip versions that are already published
+        id: check
+        run: |
+          version=$(node -p "require('./package.json').version")
+          if npm view "concepts-mcp@$version" version >/dev/null 2>&1; then
+            echo "concepts-mcp@$version is already published."
+            echo "publish=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "publish=true" >> "$GITHUB_OUTPUT"
+          fi
+      - if: steps.check.outputs.publish == 'true'
+        run: npm publish
