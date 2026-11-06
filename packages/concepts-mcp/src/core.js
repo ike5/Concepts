@@ -70,11 +70,10 @@ export async function pending(repoPath, { limit = 3, maxDiffChars = 24000 } = {}
   let autoSkipped = 0;
   const remaining = [];
   for (const sha of shas) {
-    // Check every commit for auto-skip (cheap), so counts are right even when only a few diffs are returned.
+    // Commits that only touch concept output or setup files are skipped every time without being saved:
+    // saving would change state.json, which in project mode is itself an uncommitted change, forever.
     const files = await changedFiles(root, sha);
     if (onlySetupFiles(files, outRel)) {
-      const meta = await commitMeta(root, sha);
-      state.commits[sha] = { shortSha: meta.shortSha, date: meta.date, subject: meta.subject, skipped: "Only concept output or agent setup files changed" };
       autoSkipped++;
       continue;
     }
@@ -83,7 +82,6 @@ export async function pending(repoPath, { limit = 3, maxDiffChars = 24000 } = {}
     const { diff, truncated, omitted } = await commitDiff(root, sha, { maxChars: maxDiffChars, excludeDirs: outRel ? [outRel] : [] });
     commits.push({ ...meta, files, diff, truncatedFiles: truncated, omittedFiles: omitted });
   }
-  if (autoSkipped) await writeState(dir, state);
   return { repoRoot: root, outputDir: dir, pendingTotal: commits.length + remaining.length, returned: commits.length, autoSkipped, note, commits };
 }
 

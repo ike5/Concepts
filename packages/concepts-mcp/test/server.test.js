@@ -83,14 +83,17 @@ test("full flow in project mode: setup, pending, record, notes, auto-skip", asyn
     // The user's own notes survive regeneration.
     await writeFile(note, `${await readFile(note, "utf8")}My takeaway: cap the delay.\n`);
     const index = await readFile(join(out, "README.md"), "utf8");
-    assert.match(index, /1 diagrams · 2 concepts · 2 commits skipped/);
+    assert.match(index, /1 diagrams · 2 concepts · 1 commits skipped/);
 
     // Committing the generated output is skipped automatically, then a later commit reuses a concept.
     await repo.git("add", "-A");
     await repo.git("commit", "-q", "-m", "docs(concepts): retry");
     const later = await repo.commit({ "src/queue.js": "export const q = [];\n" }, "Queue retries");
+    const stateBefore = await readFile(join(out, "state.json"), "utf8");
     const pending2 = await call("get_unprocessed_commits", { repoPath: repo.root });
     assert.deepEqual(pending2.structuredContent.commits.map((c) => c.sha), [later]);
+    assert.equal(pending2.structuredContent.autoSkipped, 2);
+    assert.equal(await readFile(join(out, "state.json"), "utf8"), stateBefore, "checking for work never dirties the output folder");
 
     const lib = await call("get_concept_library", { repoPath: repo.root });
     assert.deepEqual(lib.structuredContent.concepts.map((c) => c.id).sort(), ["exponential-backoff", "jitter"]);
