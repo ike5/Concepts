@@ -1,6 +1,6 @@
 # Concepts
 
-Learn from the code your AI just wrote. **Concepts** is an MCP server, published on npm as [`concepts-mcp`](packages/concepts-mcp). After each commit it turns the ideas the change relies on into a hand-drawn Excalidraw diagram, plus a growing library of concept notes.
+Learn from the code your AI just wrote. **Concepts** is an MCP server, published on npm as [`concepts-mcp`](packages/concepts-mcp). After each commit it draws the change as hand-drawn, Excalidraw-style system-design diagrams, with every concept it relies on marked where it lives, plus a growing library of concept notes.
 
 **Install and setup:** https://ike5.github.io/concepts/
 
@@ -24,3 +24,7 @@ npm run example     # draws examples/commit.json into examples/output/
 ```
 
 To release, bump `version` in `packages/concepts-mcp/package.json` and `server.json`, then push a `v<version>` tag.
+
+## License and contributing
+
+[PolyForm Noncommercial 1.0.0](LICENSE.md): free for noncommercial use and modification; no selling or commercial use. Pull requests are welcome; see [CONTRIBUTING.md](CONTRIBUTING.md).

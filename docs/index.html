@@ -60,7 +60,7 @@
   <div class="wrap">
     <header>
       <h1>Learn from the code<br>your AI just wrote.</h1>
-      <p class="lede">Concepts is an MCP server. After each commit, your agent picks out the ideas the code relies on (patterns, algorithms, APIs) and draws them as a hand-drawn Excalidraw diagram, with a note for each concept.</p>
+      <p class="lede">Concepts is an MCP server. After each commit, your agent draws the change as hand-drawn system-design diagrams and marks every concept it relies on (patterns, algorithms, protocols, APIs) right where it lives, with a note for each one.</p>
     </header>
 
     <section class="card" id="install" aria-labelledby="step1">
@@ -94,16 +94,16 @@
 
     <h2>What you get for each commit</h2>
     <figure>
-      <img src="assets/example.svg" alt="A hand-drawn diagram titled Retrying failed webhooks with backoff, connecting five concepts: Jitter spreads out Exponential backoff, which gives up into a Dead-letter queue and is safe because of Idempotency keys, which HMAC signatures protect." width="900" height="1000" loading="lazy">
-      <figcaption>An example diagram. The <code>.excalidraw</code> file next to it opens in excalidraw.com, Obsidian or VS Code for editing.</figcaption>
+      <img src="assets/example.svg" alt="A hand-drawn diagram titled Retrying failed webhooks. An architecture view shows a customer calling the billing API, which writes to a new webhook outbox in the same transaction; a new delivery worker polls the outbox, posts to the customer endpoint, signs with stored keys and gives up into dead letters. A sequence view shows one failed attempt. Six numbered concept markers sit on the parts where each concept lives, with a key beside the diagrams." width="1480" height="1480" loading="lazy">
+      <figcaption>An example. Bold outlines are what the commit added, faded parts are the system around it, and each red number marks where a concept lives. Explanations go in the README next to it. The <code>.excalidraw</code> file opens in excalidraw.com, Obsidian or VS Code.</figcaption>
     </figure>
 
     <h2>How it works</h2>
     <div class="grid">
       <div class="card"><h3>Your agent does the thinking</h3><p>The MCP reads git and draws the files. The agent you already use picks out the concepts, so there's no extra API key or account.</p></div>
-      <div class="card"><h3>Nothing gets missed</h3><p>It tracks which commits have a diagram, so commits made by hand or between sessions are picked up next time.</p></div>
+      <div class="card"><h3>Nothing missed, no noise</h3><p>It tracks which commits have a diagram, so commits made by hand are picked up next time. Lockfiles and generated files stay out, and trivial commits are skipped.</p></div>
+      <div class="card"><h3>Diagrams, not paragraphs</h3><p>Architecture, sequence, flow, state machine and data-model views, as many as the change needs, with real shapes for databases, queues, people and decisions.</p></div>
       <div class="card"><h3>A library that grows</h3><p>Each concept gets one Markdown note that collects every commit where it showed up. Notes you add yourself are kept.</p></div>
-      <div class="card"><h3>Noise stays out</h3><p>Lockfiles and generated files are left out of the diff, and the agent skips commits like typo fixes and version bumps.</p></div>
     </div>
 
     <h2>Where diagrams go</h2>
@@ -119,7 +119,7 @@
     notes/exponential-backoff.md  one note per concept</pre>
 
     <footer>
-      MIT licensed. Source on <a href="https://github.com/ike5/concepts">GitHub</a>. Diagrams use a Latin subset of the Virgil font (SIL OFL 1.1).
+      Free for noncommercial use (<a href="https://github.com/ike5/concepts/blob/main/LICENSE.md">PolyForm Noncommercial 1.0.0</a>). Source on <a href="https://github.com/ike5/concepts">GitHub</a>. Diagrams use a Latin subset of the Virgil font (SIL OFL 1.1).
     </footer>
   </div>
   <script src="install.js" defer></script>

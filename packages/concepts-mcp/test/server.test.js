@@ -5,7 +5,7 @@ import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { Client } from "@modelcontextprotocol/client";
 import { StdioClientTransport } from "@modelcontextprotocol/client/stdio";
-import { tempRepo, concept, execFile } from "./helpers.js";
+import { tempRepo, concept, view, execFile } from "./helpers.js";
 
 const entry = fileURLToPath(new URL("../src/index.js", import.meta.url));
 
@@ -62,14 +62,14 @@ test("full flow in project mode: setup, pending, record, notes, auto-skip", asyn
     const skip = await call("record_commit_concepts", { repoPath: repo.root, commit: commits[0].sha, skipReason: "Scaffolding only" });
     assert.ok(!skip.isError, skip.text);
 
-    const bad = await call("record_commit_concepts", { repoPath: repo.root, commit: work, title: "t", summary: "s", concepts: [concept("exponential-backoff")], relations: [{ from: "exponential-backoff", to: "nope", label: "uses" }] });
+    const bad = await call("record_commit_concepts", { repoPath: repo.root, commit: work, title: "t", summary: "s", views: [view()], concepts: [concept("exponential-backoff", { appearsIn: ["nope"] })] });
     assert.equal(bad.isError, true);
-    assert.match(bad.text, /isn't one of this commit's concepts/);
+    assert.match(bad.text, /appears in "nope"/);
 
     const rec = await call("record_commit_concepts", {
       repoPath: repo.root, commit: work.slice(0, 7), title: "Retrying with backoff", summary: "Retries wait longer each time.",
-      concepts: [concept("exponential-backoff", { kind: "algorithm", learnMore: [{ title: "AWS", url: "https://aws.amazon.com/" }] }), concept("jitter", { kind: "algorithm" })],
-      relations: [{ from: "jitter", to: "exponential-backoff", label: "spreads out" }],
+      views: [view(), { type: "sequence", title: "Retry", participants: [{ id: "w", label: "Worker" }, { id: "q", label: "Queue", shape: "queue" }], messages: [{ id: "retry", from: "w", to: "q", label: "retry later" }] }],
+      concepts: [concept("exponential-backoff", { kind: "algorithm", appearsIn: ["retry", "call"], learnMore: [{ title: "AWS", url: "https://aws.amazon.com/" }] }), concept("jitter", { kind: "algorithm", appearsIn: ["retry"] })],
     });
     assert.ok(!rec.isError, rec.text);
     assert.deepEqual(rec.structuredContent.newConcepts.sort(), ["exponential-backoff", "jitter"]);
@@ -95,13 +95,13 @@ test("full flow in project mode: setup, pending, record, notes, auto-skip", asyn
     const lib = await call("get_concept_library", { repoPath: repo.root });
     assert.deepEqual(lib.structuredContent.concepts.map((c) => c.id).sort(), ["exponential-backoff", "jitter"]);
 
-    const rec2 = await call("record_commit_concepts", { repoPath: repo.root, commit: later, title: "A retry queue", summary: "Queue it.", concepts: [concept("exponential-backoff", { kind: "algorithm" }), concept("work-queue")] });
+    const rec2 = await call("record_commit_concepts", { repoPath: repo.root, commit: later, title: "A retry queue", summary: "Queue it.", views: [view()], concepts: [concept("exponential-backoff", { kind: "algorithm" }), concept("work-queue", { appearsIn: ["worker"] })] });
     assert.deepEqual(rec2.structuredContent.newConcepts, ["work-queue"]);
     const updated = await readFile(note, "utf8");
     assert.match(updated, /Where it showed up \(2\)/);
     assert.match(updated, /My takeaway: cap the delay\./);
     // Re-recording the same commit replaces it rather than counting it twice.
-    await call("record_commit_concepts", { repoPath: repo.root, commit: later, title: "A retry queue", summary: "Queue it.", concepts: [concept("exponential-backoff", { kind: "algorithm" })] });
+    await call("record_commit_concepts", { repoPath: repo.root, commit: later, title: "A retry queue", summary: "Queue it.", views: [view()], concepts: [concept("exponential-backoff", { kind: "algorithm" })] });
     assert.match(await readFile(note, "utf8"), /Where it showed up \(2\)/);
     assert.ok(!(await call("get_concept_library", { repoPath: repo.root })).structuredContent.concepts.some((c) => c.id === "work-queue"));
 
@@ -122,7 +122,7 @@ test("library mode writes to ~/ConceptLibrary/<repo> and a library index", async
     assert.equal(setup.structuredContent.outputDir, join(repo.home, "ConceptLibrary", "my-app"));
     assert.equal(setup.structuredContent.config.dir, "~/ConceptLibrary", "home is stored as ~ so the config is portable");
     assert.ok(!(await exists(join(repo.root, "CLAUDE.md"))), "no CLAUDE.md when Claude Code isn't chosen");
-    const rec = await call("record_commit_concepts", { repoPath: repo.root, commit: sha, title: "Hello", summary: "Prints.", concepts: [concept("stdout")] });
+    const rec = await call("record_commit_concepts", { repoPath: repo.root, commit: sha, title: "Hello", summary: "Prints.", views: [view()], concepts: [concept("stdout")] });
     assert.ok(!rec.isError, rec.text);
     const library = await readFile(join(repo.home, "ConceptLibrary", "README.md"), "utf8");
     assert.match(library, /\| \[my-app\]\(my-app\/README\.md\) \| 1 \| 1 \|/);

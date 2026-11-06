@@ -4,7 +4,7 @@ An MCP server that turns each commit into a hand-drawn [Excalidraw](https://exca
 
 ![Example concept diagram](https://ike5.github.io/concepts/assets/example.svg)
 
-Most of what you learn as an engineer happens after the code works: you find out *why* it works. When an AI writes the code, that step is easy to skip. After each commit, your agent picks out the ideas the change relies on (patterns, algorithms, library APIs, protocols, security decisions) and records them. This server draws the diagram and keeps a growing library of concept notes.
+Most of what you learn as an engineer happens after the code works: you find out *why* it works. When an AI writes the code, that step is easy to skip. After each commit, your agent models the change as system-design diagrams and marks every concept it relies on (patterns, algorithms, library APIs, protocols, security decisions) on the part of the system where it lives. This server lays out and draws the diagrams, and keeps a growing library of concept notes.
 
 ## Install
 
@@ -53,11 +53,19 @@ ConceptLibrary/
     commits/2026-11-06-3f9c2ab-retrying-failed-webhooks/
       concepts.excalidraw         editable: excalidraw.com, Obsidian, VS Code extension
       concepts.svg                preview that renders on GitHub
-      README.md                   each concept explained, why this commit needed it, files
+      README.md                   numbered concepts: what each is, why this commit needed it, files
     notes/exponential-backoff.md  one note per concept, collecting every commit it appeared in
 ```
 
-Concepts seen for the first time are marked **NEW**. Anything you write under **My notes** in a concept note is kept when the note is regenerated.
+Each diagram teaches through structure, not text:
+
+- **Views:** the agent picks as many as the change needs, from `architecture` (components and how they talk), `sequence` (who calls whom, in order), `flow` (steps and decisions), `state` (states and transitions) and `data-model` (entities and relationships).
+- **Shapes mean something:** databases are cylinders, people are stick figures, decisions are diamonds, queues show message slots, external systems are dashed. Boundaries (services, layers, trust zones) are dashed boxes.
+- **What changed:** parts and arrows the commit added have a bold outline, changed ones a blue outline, and the existing system around them is faded.
+- **Line style means something:** call, async message or event, data flow, depends on.
+- **Concepts:** each one is a numbered red marker on the parts where it lives. The key beside the diagram names them. Explanations are in the commit's README and the concept notes, never inside the diagram.
+
+There's no fixed number of concepts or views: a one-line fix may get one small diagram, a large feature several. Concepts seen for the first time are marked **NEW**. Anything you write under **My notes** in a concept note is kept when the note is regenerated.
 
 ## How it works
 
@@ -69,11 +77,11 @@ The server never calls an AI and never sends your code anywhere. The agent you a
 | `setup_concepts` | Configures a repository (the agent asks you where diagrams go first) |
 | `get_unprocessed_commits` | Commits since setup without a diagram, oldest first, with message, files and a trimmed diff |
 | `get_concept_library` | Concepts already recorded, so the agent reuses their ids |
-| `record_commit_concepts` | Draws the diagram, updates the notes, marks the commit done; or `skipReason` for trivial commits |
+| `record_commit_concepts` | Takes views + concepts, draws the diagrams, updates the notes, marks the commit done; or `skipReason` for trivial commits |
 
 - **Nothing gets missed.** The server tracks which commits have been handled rather than looking only at the latest one. Commits you make by hand, or several commits in a row, are picked up the next time the agent runs.
 - **Noise is filtered.** Lockfiles, minified and generated files are left out of diffs. Commits that only change the concept output or setup files are skipped automatically.
-- **Layout is done for the agent.** The agent sends plain concept data; the server places the boxes with [dagre](https://github.com/dagrejs/dagre), writes `.excalidraw` JSON itself, and draws the SVG with [Rough.js](https://roughjs.com), the library Excalidraw uses for its hand-drawn look.
+- **Layout is done for the agent.** The agent describes components, arrows and concepts as data. The server lays them out with [dagre](https://github.com/dagrejs/dagre), writes the `.excalidraw` JSON itself (one frame per view), and draws the SVG with [Rough.js](https://roughjs.com), the library Excalidraw uses for its hand-drawn look.
 
 ## Limits
 
@@ -92,4 +100,6 @@ npx -y concepts-mcp@latest render <concepts.json> [out-dir]
 
 ## License
 
-MIT. Diagrams embed "Concepts Hand", a Latin subset of the [Virgil](https://github.com/excalidraw/virgil) font by Ellinor Rapp, under the SIL Open Font License 1.1 (see `fonts/LICENSE-FONT.md`).
+[PolyForm Noncommercial 1.0.0](LICENSE.md). You can use, study and modify it for any noncommercial purpose; selling it or using it commercially is not allowed. Pull requests are welcome, but there's no promise they'll be merged.
+
+Diagrams embed "Concepts Hand", a Latin subset of the [Virgil](https://github.com/excalidraw/virgil) font by Ellinor Rapp, under the SIL Open Font License 1.1 (see `fonts/LICENSE-FONT.md`). The diagrams you make are yours.

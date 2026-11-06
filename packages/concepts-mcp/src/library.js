@@ -22,6 +22,23 @@ export function commitFolder(meta, title) {
   return posix(join("commits", `${day(meta.date)}-${meta.shortSha}-${slug(title)}`));
 }
 
+/** Names of the diagram parts a concept is attached to, for the README ("where to look"). */
+function partNames(views) {
+  const names = new Map();
+  for (const v of views) {
+    if (v.type === "sequence") {
+      for (const p of v.participants) names.set(p.id, p.label);
+      for (const m of v.messages) if (m.id) names.set(m.id, `"${m.label}"`);
+    } else {
+      for (const g of v.groups) names.set(g.id, g.label);
+      for (const n of v.nodes) names.set(n.id, n.label);
+      const label = new Map(v.nodes.map((n) => [n.id, n.label]));
+      for (const e of v.edges) if (e.id) names.set(e.id, e.label ? `"${e.label}"` : `${label.get(e.from)} → ${label.get(e.to)}`);
+    }
+  }
+  return names;
+}
+
 /** Render one commit's diagram files into `dir/<folder>`. Returns the written paths. */
 export async function renderCommit(dir, folder, record, { newIds }) {
   const abs = join(dir, folder);
@@ -31,22 +48,20 @@ export async function renderCommit(dir, folder, record, { newIds }) {
   const excalidraw = join(abs, "concepts.excalidraw");
   const svg = join(abs, "concepts.svg");
   const readme = join(abs, "README.md");
-  await writeFile(excalidraw, `${JSON.stringify(toExcalidraw(scene, record.commit), null, 2)}\n`);
-  await writeFile(svg, toSvg(scene, record.commit));
+  await writeFile(excalidraw, `${JSON.stringify(toExcalidraw(scene), null, 2)}\n`);
+  await writeFile(svg, toSvg(scene));
+  const names = partNames(record.views);
   const lines = [
     `# ${md(record.title)}`, "", `${record.commitLine}`, "", md(record.summary), "",
     "![Concept diagram](concepts.svg)", "",
-    "_Edit the diagram: open `concepts.excalidraw` in [excalidraw.com](https://excalidraw.com), Obsidian, or the VS Code Excalidraw extension._", "",
+    `_Views: ${record.views.map((v) => `${md(v.title)} (${v.type.replace("-", " ")})`).join(" · ")}. Numbered markers on the diagram match the concepts below. Edit it by opening \`concepts.excalidraw\` in [excalidraw.com](https://excalidraw.com), Obsidian, or the VS Code Excalidraw extension._`, "",
     "## Concepts", "",
   ];
-  for (const c of record.concepts) {
-    lines.push(`### [${md(c.name)}](${noteLink(c)})${newIds.has(c.id) ? " ✦ new" : ""}`, "", `_${c.kind.replace(/-/g, " ")} · ${c.level}_`, "", md(c.explanation), "", `**Why here:** ${md(c.whyHere)}`, "");
+  record.concepts.forEach((c, i) => {
+    lines.push(`### ${i + 1}. [${md(c.name)}](${noteLink(c)})${newIds.has(c.id) ? " ✦ new" : ""}`, "", `_${c.kind.replace(/-/g, " ")} · ${c.level}_`, "", md(c.explanation), "", `**Why here:** ${md(c.whyHere)}`, "");
+    if (c.appearsIn.length) lines.push(`**On the diagram:** ${c.appearsIn.map((r) => md(names.get(r) ?? r)).join(", ")}`, "");
     if (c.files.length) lines.push(`**Files:** ${c.files.map(fileRef).join(", ")}`, "");
-  }
-  if (record.relations?.length) {
-    const names = new Map(record.concepts.map((c) => [c.id, c.name]));
-    lines.push("## How they connect", "", ...record.relations.map((r) => `- ${md(names.get(r.from))} **${md(r.label)}** ${md(names.get(r.to))}`), "");
-  }
+  });
   await writeFile(readme, lines.join("\n"));
   return { folder: abs, excalidraw, svg, readme };
 }

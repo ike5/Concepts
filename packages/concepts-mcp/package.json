@@ -5,10 +5,10 @@
   "keywords": ["mcp", "mcp-server", "excalidraw", "learning", "git", "diagram", "claude", "codex", "cursor"],
   "homepage": "https://ike5.github.io/concepts/",
   "bugs": "https://github.com/ike5/concepts/issues",
-  "license": "MIT",
+  "license": "PolyForm-Noncommercial-1.0.0",
   "type": "module",
   "bin": { "concepts-mcp": "src/index.js" },
-  "files": ["src/*.js", "fonts/", "README.md", "LICENSE"],
+  "files": ["src/*.js", "fonts/", "README.md", "LICENSE.md"],
   "repository": { "type": "git", "url": "git+https://github.com/ike5/concepts.git", "directory": "packages/concepts-mcp" },
   "engines": { "node": ">=20" },
   "scripts": {

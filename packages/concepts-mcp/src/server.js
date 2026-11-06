@@ -74,7 +74,7 @@ export function createServer(version) {
 
   server.registerTool("record_commit_concepts", {
     title: "Draw a commit's concept diagram",
-    description: "Save the concepts you found in one commit. Writes a hand-drawn concepts.excalidraw, a concepts.svg preview and a README for the commit, updates one Markdown note per concept, and marks the commit done. Pass skipReason instead of concepts for commits with nothing to learn.",
+    description: "Save one commit as system-design diagrams. Views (architecture, sequence, flow, state, data-model) are laid out and drawn for you in Excalidraw style; each concept becomes a numbered marker on the parts where it lives, with names in a key beside the diagram. Writes concepts.excalidraw, a concepts.svg preview and a README, updates one Markdown note per concept, and marks the commit done. Pass skipReason instead for commits with nothing to learn.",
     inputSchema: z.object(recordInput),
   }, async (input) => {
     try {

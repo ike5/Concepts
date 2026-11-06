@@ -1,21 +1,22 @@
 import dagre from "@dagrejs/dagre";
 import { emWidth } from "./metrics.js";
 
-// Excalidraw's own pastel palette, one per kind, so the colors carry meaning across every diagram.
-export const KIND_COLORS = {
-  pattern: "#a5d8ff", algorithm: "#ffc9c9", "data-structure": "#ffd8a8", architecture: "#d0bfff",
-  library: "#b2f2bb", framework: "#96f2d7", "language-feature": "#ffec99", protocol: "#99e9f2",
-  tooling: "#e9ecef", testing: "#c3fae8", security: "#ffa8a8", performance: "#fcc2d7", concept: "#eebefa",
-};
+// Colors from Excalidraw's palette. Fill says what a part *is*; the outline says whether this commit added it.
 export const INK = "#1e1e1e";
 export const MUTED = "#757575";
+export const FAINT = "#adb5bd";
 export const ACCENT = "#e03131";
-export const FONT = { title: 28, sub: 14, body: 16, name: 20, meta: 13, small: 14, edge: 14 };
+export const CHANGED = "#1971c2";
+export const PAPER = "#ffffff";
+const FILL = {
+  service: "#a5d8ff", module: "#a5d8ff", function: "#a5d8ff", process: "#a5d8ff", state: "#a5d8ff", config: "#e9ecef",
+  client: "#d0bfff", user: "#d0bfff", database: "#b2f2bb", storage: "#b2f2bb", cache: "#c3fae8", queue: "#ffd8a8",
+  event: "#ffd8a8", external: "#e9ecef", decision: "#ffec99", start: "#c3fae8", end: "#c3fae8", entity: "#fff3bf", document: "#ffffff",
+};
 const LINE = 1.25;
-const NODE_W = 300;
-const PAD = 16;
+const LABEL = 16;
+const SMALL = 14;
 
-/** Width of text in the bundled hand-drawn font (the same metrics Excalidraw uses for Virgil). */
 export function textWidth(text, size) {
   return Math.ceil(emWidth(text) * size);
 }
@@ -43,128 +44,345 @@ export function wrap(text, size, width) {
   return lines;
 }
 
-/** Where the line between two box centers leaves each box, so edges are straight and end at the border. */
-function straightEdge(a, b) {
-  const ca = [a.x + a.width / 2, a.y + a.height / 2];
-  const cb = [b.x + b.width / 2, b.y + b.height / 2];
-  const exit = (box, [cx, cy], [tx, ty]) => {
-    const dx = tx - cx;
-    const dy = ty - cy;
-    const t = Math.min(dx ? (box.width / 2) / Math.abs(dx) : Infinity, dy ? (box.height / 2) / Math.abs(dy) : Infinity);
-    return [cx + dx * t, cy + dy * t];
-  };
-  return [exit(a, ca, cb), exit(b, cb, ca)];
+function lighten(hex, t) {
+  const n = parseInt(hex.slice(1), 16);
+  const mix = (c) => Math.round(c + (255 - c) * t).toString(16).padStart(2, "0");
+  return `#${mix(n >> 16)}${mix((n >> 8) & 255)}${mix(n & 255)}`;
 }
 
-/** The first sentence or two that fits in a box; the full explanation lives in the concept's note. */
-export function brief(text, limit = 170) {
-  const sentences = String(text).match(/[^.!?]+[.!?]+(\s|$)|[^.!?]+$/g) ?? [String(text)];
-  let out = "";
-  for (const s of sentences) {
-    if ((out + s).trim().length > limit) break;
-    out += s;
+function look(status, fill) {
+  if (status === "new") return { stroke: INK, strokeWidth: 2.5, fill };
+  if (status === "changed") return { stroke: CHANGED, strokeWidth: 2.5, fill };
+  return { stroke: FAINT, strokeWidth: 1, fill: lighten(fill, 0.55), textColor: MUTED };
+}
+
+const EDGE = {
+  sync: { dash: "solid", head: "arrow", word: "call" },
+  async: { dash: "dashed", head: "arrow", word: "async message / event" },
+  data: { dash: "solid", head: "triangle", word: "data flow" },
+  dependency: { dash: "dotted", head: "arrow", word: "depends on" },
+  reply: { dash: "dashed", head: "arrow", word: "reply" },
+};
+
+/** Collects drawing primitives. Both writers (.excalidraw and SVG) draw exactly this list. */
+class Canvas {
+  constructor(prefix) { this.prefix = prefix; this.items = []; this.n = 0; }
+  key(name) { return `${this.prefix}:${name ?? this.n++}`; }
+  add(item) { this.items.push(item); return item; }
+  text(lines, size, color, x, y, extra = {}) {
+    const w = Math.max(1, ...lines.map((l) => textWidth(l, size)));
+    return this.add({ kind: "text", key: this.key(extra.name), lines, size, color, x, y, w, h: lines.length * size * LINE, align: "left", ...extra });
   }
-  out = out.trim() || String(text).slice(0, limit - 1).trim() + "…";
-  return out;
+  bounds() {
+    let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+    for (const it of this.items) {
+      const pts = it.points ?? [[it.x, it.y], [it.x + it.w, it.y + it.h]];
+      for (const [x, y] of pts) { x0 = Math.min(x0, x); y0 = Math.min(y0, y); x1 = Math.max(x1, x); y1 = Math.max(y1, y); }
+    }
+    return { x0, y0, x1, y1, w: x1 - x0, h: y1 - y0 };
+  }
+  shift(dx, dy) {
+    for (const it of this.items) {
+      if (it.points) it.points = it.points.map(([x, y]) => [x + dx, y + dy]);
+      if (it.x !== undefined) { it.x += dx; it.y += dy; }
+    }
+    for (const a of Object.values(this.anchors ?? {})) for (const p of a) { p.x += dx; p.y += dy; }
+  }
 }
 
-function block(lines, size, color, x, y, extra = {}) {
-  return { type: "text", lines, size, color, x, y, width: Math.max(0, ...lines.map((l) => textWidth(l, size))), height: lines.length * size * LINE, ...extra };
+function labelLines(label, max = 170) {
+  const lines = wrap(label, LABEL, max);
+  return { lines, w: Math.max(...lines.map((l) => textWidth(l, LABEL))), h: lines.length * LABEL * LINE };
 }
 
-/**
- * Lay out one commit's concepts. Returns plain shapes (text blocks, nodes, edges) in absolute
- * coordinates that both the .excalidraw and the SVG writers draw from.
- */
-export function buildScene(record, { newIds = new Set(), noteLink = () => null } = {}) {
-  const nodes = record.concepts.map((c) => {
-    const isNew = newIds.has(c.id);
-    const meta = `${c.kind.replace(/-/g, " ")} · ${c.level}${isNew ? " · NEW" : ""}`;
-    const nameLines = wrap(c.name, FONT.name, NODE_W - PAD * 2);
-    const bodyLines = wrap(brief(c.explanation), FONT.small, NODE_W - PAD * 2);
-    const height = PAD + nameLines.length * FONT.name * LINE + 6 + FONT.meta * LINE + 10 + bodyLines.length * FONT.small * LINE + PAD;
-    return { concept: c, isNew, meta, nameLines, bodyLines, width: NODE_W, height: Math.ceil(height) };
-  });
+/** Size a node so its label fits its shape. */
+export function nodeSize(node) {
+  const { w: lw, h: lh } = labelLines(node.label);
+  switch (node.shape) {
+    case "user": return { w: Math.max(90, lw + 24), h: 66 + lh };
+    case "database": case "storage": case "cache": return { w: Math.max(110, lw + 40), h: lh + 58 };
+    case "queue": return { w: Math.max(140, lw + 84), h: Math.max(60, lh + 30) };
+    case "event": case "start": case "end": return { w: Math.max(110, lw + 64), h: Math.max(58, lh + 36) };
+    case "decision": return { w: Math.max(140, Math.ceil(lw * 1.5) + 40), h: Math.max(84, Math.ceil(lh * 1.6) + 44) };
+    case "entity": {
+      const fields = node.fields ?? [];
+      const fw = Math.max(0, ...fields.map((f) => textWidth(f, SMALL)));
+      return { w: Math.max(170, lw + 36, fw + 32), h: lh + 22 + (fields.length ? fields.length * SMALL * LINE + 16 : 0) };
+    }
+    case "client": return { w: Math.max(130, lw + 40), h: Math.max(70, lh + 44) };
+    default: return { w: Math.max(120, lw + 40), h: Math.max(60, lh + 30) };
+  }
+}
 
-  const linked = new Set((record.relations ?? []).flatMap((r) => [r.from, r.to]));
-  const g = new dagre.graphlib.Graph({ multigraph: true });
-  g.setGraph({ rankdir: "TB", nodesep: 80, ranksep: 120, edgesep: 40, marginx: 0, marginy: 0 });
+/** Draw one node with its shape. Returns the key of the element arrows attach to. */
+function drawNode(c, node, x, y, w, h) {
+  const st = look(node.status, FILL[node.shape] ?? FILL.service);
+  const group = c.key(`g-${node.id}`);
+  const body = c.key(`node-${node.id}`);
+  const { lines, h: lh } = labelLines(node.label);
+  const textColor = st.textColor ?? INK;
+  const base = { stroke: st.stroke, strokeWidth: st.strokeWidth, fill: st.fill, dash: "solid", group };
+  const centered = (top) => {
+    const t = c.text(lines, LABEL, textColor, x + w / 2, top, { align: "center", group });
+    t.x -= t.w / 2;
+    return t;
+  };
+  const bound = () => {
+    const t = c.text(lines, LABEL, textColor, x + w / 2, y + h / 2 - lh / 2, { align: "center", group, container: body });
+    t.x -= t.w / 2;
+    return t;
+  };
+  const line = (pts, extra = {}) => c.add({ kind: "line", key: c.key(), points: pts, stroke: st.stroke, strokeWidth: st.strokeWidth, dash: "solid", group, ...extra });
+
+  switch (node.shape) {
+    case "user": {
+      c.add({ kind: "rect", key: body, x, y, w, h, stroke: "transparent", strokeWidth: 1, fill: "transparent", dash: "solid", group });
+      const cx = x + w / 2;
+      c.add({ kind: "ellipse", key: c.key(), x: cx - 11, y: y + 2, w: 22, h: 22, ...base });
+      line([[cx, y + 24], [cx, y + 46]]);
+      line([[cx - 17, y + 32], [cx + 17, y + 32]]);
+      line([[cx, y + 46], [cx - 14, y + 62]]);
+      line([[cx, y + 46], [cx + 14, y + 62]]);
+      centered(y + 66);
+      break;
+    }
+    case "database": case "storage": case "cache": {
+      const ry = 10;
+      c.add({ kind: "ellipse", key: c.key(), x, y: y + h - ry * 2, w, h: ry * 2, ...base });
+      c.add({ kind: "rect", key: body, x, y: y + ry, w, h: h - ry * 2, ...base, stroke: "transparent" });
+      line([[x, y + ry], [x, y + h - ry]]);
+      line([[x + w, y + ry], [x + w, y + h - ry]]);
+      c.add({ kind: "ellipse", key: c.key(), x, y, w, h: ry * 2, ...base });
+      centered(y + ry * 2 + (h - ry * 3 - lh) / 2);
+      break;
+    }
+    case "event": case "start": case "end":
+      c.add({ kind: "ellipse", key: body, x, y, w, h, ...base });
+      if (node.shape === "end") c.add({ kind: "ellipse", key: c.key(), x: x + 5, y: y + 5, w: w - 10, h: h - 10, ...base, fill: "transparent" });
+      bound();
+      break;
+    case "decision":
+      c.add({ kind: "diamond", key: body, x, y, w, h, ...base });
+      bound();
+      break;
+    case "entity": {
+      c.add({ kind: "rect", key: body, x, y, w, h, ...base, rounded: false });
+      const t = c.text(lines, LABEL, textColor, x + w / 2, y + 10, { align: "center", group });
+      t.x -= t.w / 2;
+      const fields = node.fields ?? [];
+      if (fields.length) {
+        line([[x, y + lh + 20], [x + w, y + lh + 20]]);
+        c.text(fields, SMALL, textColor, x + 14, y + lh + 28, { group });
+      }
+      break;
+    }
+    default: {
+      const dash = node.shape === "external" ? "dashed" : "solid";
+      c.add({ kind: "rect", key: body, x, y, w, h, ...base, dash, rounded: !["module", "document", "config"].includes(node.shape) });
+      if (node.shape === "client") line([[x, y + 16], [x + w, y + 16]]);
+      if (node.shape === "document") line([[x + w - 18, y], [x + w, y + 18]]);
+      if (node.shape === "queue") for (const off of [14, 24, 34]) line([[x + w - off, y + 9], [x + w - off, y + h - 9]]);
+      if (node.shape === "client") {
+        const t = c.text(lines, LABEL, textColor, x + w / 2, y + 16 + (h - 16 - lh) / 2, { align: "center", group, container: body });
+        t.x -= t.w / 2;
+      } else bound();
+    }
+  }
+  return body;
+}
+
+function arrowStyle(style, status) {
+  const e = EDGE[style] ?? EDGE.sync;
+  if (status === "new") return { ...e, stroke: INK, strokeWidth: 2 };
+  if (status === "changed") return { ...e, stroke: CHANGED, strokeWidth: 2 };
+  return { ...e, stroke: FAINT, strokeWidth: 1.5, textColor: MUTED };
+}
+
+function layoutGraph(view, prefix) {
+  const c = new Canvas(prefix);
+  c.anchors = {};
+  const sizes = new Map(view.nodes.map((n) => [n.id, nodeSize(n)]));
+  const g = new dagre.graphlib.Graph({ compound: true, multigraph: true });
+  const down = (view.direction ?? (view.type === "flow" ? "down" : "right")) === "down";
+  g.setGraph({ rankdir: down ? "TB" : "LR", nodesep: 46, ranksep: down ? 74 : 110, edgesep: 24, marginx: 0, marginy: 0 });
   g.setDefaultEdgeLabel(() => ({}));
-  for (const n of nodes) if (linked.has(n.concept.id)) g.setNode(n.concept.id, { width: n.width, height: n.height });
-  (record.relations ?? []).forEach((r, i) => {
-    // No label size here: dagre would route the edge through a dummy label node and bend it. Labels sit at the midpoint instead.
-    g.setEdge(r.from, r.to, { label: r.label }, `e${i}`);
+  for (const grp of view.groups) g.setNode(`group:${grp.id}`, { label: grp.label });
+  for (const n of view.nodes) {
+    const s = sizes.get(n.id);
+    g.setNode(n.id, { width: s.w, height: s.h });
+    if (n.group) g.setParent(n.id, `group:${n.group}`);
+  }
+  view.edges.forEach((e, i) => {
+    const lw = e.label ? textWidth(e.label, SMALL) + 12 : 0;
+    g.setEdge(e.from, e.to, { width: lw, height: e.label ? 22 : 0, labelpos: "c" }, `e${i}`);
   });
   dagre.layout(g);
 
-  const byId = new Map(nodes.map((n) => [n.concept.id, n]));
-  let graphW = 0;
-  let graphH = 0;
-  for (const id of g.nodes()) {
-    const { x, y } = g.node(id);
-    const n = byId.get(id);
-    n.x = x - n.width / 2;
-    n.y = y - n.height / 2;
-    graphW = Math.max(graphW, n.x + n.width);
-    graphH = Math.max(graphH, n.y + n.height);
+  // Boundaries first, so they sit behind the parts inside them.
+  for (const grp of view.groups) {
+    const gn = g.node(`group:${grp.id}`);
+    if (!gn || !gn.width) continue;
+    const x = gn.x - gn.width / 2 - 18, y = gn.y - gn.height / 2 - 34, w = gn.width + 36, h = gn.height + 52;
+    c.add({ kind: "rect", key: c.key(`group-${grp.id}`), x, y, w, h, stroke: MUTED, strokeWidth: 1, fill: "#f8f9fa", dash: "dashed", rounded: true });
+    const t = c.text([grp.label], SMALL, MUTED, x + 12, y + 8);
+    c.anchors[grp.id] = [{ x: x + 12 + t.w + 18, y: y + 4, dir: 1 }];
   }
-  const edges = g.edges().map((e) => {
-    const data = g.edge(e);
-    const a = byId.get(e.v);
-    const b = byId.get(e.w);
-    const points = straightEdge(a, b);
-    return { from: e.v, to: e.w, label: data.label, points, labelX: (points[0][0] + points[1][0]) / 2, labelY: (points[0][1] + points[1][1]) / 2 };
-  });
-
-  // Concepts with no relations go in a grid under the graph instead of one very wide row.
-  const loose = nodes.filter((n) => !linked.has(n.concept.id));
-  if (loose.length) {
-    const cols = Math.min(3, loose.length);
-    const top = graphH ? graphH + 90 : 0;
-    let rowY = top;
-    for (let i = 0; i < loose.length; i += cols) {
-      const row = loose.slice(i, i + cols);
-      row.forEach((n, j) => { n.x = j * (NODE_W + 50); n.y = rowY; });
-      rowY += Math.max(...row.map((n) => n.height)) + 50;
+  const bodies = new Map();
+  for (const n of view.nodes) {
+    const p = g.node(n.id);
+    const s = sizes.get(n.id);
+    const x = p.x - s.w / 2, y = p.y - s.h / 2;
+    bodies.set(n.id, drawNode(c, n, x, y, s.w, s.h));
+    c.anchors[n.id] = [{ x: x + s.w - 4, y: y - 8, dir: -1 }];
+  }
+  view.edges.forEach((e, i) => {
+    const data = g.edge({ v: e.from, w: e.to, name: `e${i}` });
+    const st = arrowStyle(e.style, e.status);
+    let points = data.points.map((p) => [p.x, p.y]);
+    if (e.from === e.to && points.length < 3) {
+      const b = g.node(e.from);
+      points = [[b.x + b.width / 2, b.y], [b.x + b.width / 2 + 34, b.y - 10], [b.x + b.width / 2 + 34, b.y + 24], [b.x + b.width / 2, b.y + 14]];
     }
-    graphW = Math.max(graphW, cols * (NODE_W + 50) - 50);
-    graphH = rowY - 50;
-  }
+    const arrow = c.add({ kind: "arrow", key: c.key(`edge-${i}`), points, stroke: st.stroke, strokeWidth: st.strokeWidth, dash: st.dash, head: st.head, start: bodies.get(e.from), end: bodies.get(e.to), curved: points.length > 2 });
+    let lx = data.x, ly = data.y;
+    if (lx === undefined) { const mid = points[Math.floor(points.length / 2)]; [lx, ly] = mid; }
+    if (e.label) {
+      const t = c.text([e.label], SMALL, st.textColor ?? INK, lx, ly - (SMALL * LINE) / 2, { align: "center", container: arrow.key, background: true });
+      t.x -= t.w / 2;
+      if (e.id) c.anchors[e.id] = [{ x: t.x + t.w + 16, y: t.y - 6, dir: 1 }];
+    } else if (e.id) c.anchors[e.id] = [{ x: lx + 10, y: ly - 22, dir: 1 }];
+  });
+  return c;
+}
 
-  // Header above the graph: title, commit line, takeaway.
-  const contentW = Math.max(graphW, 640);
-  const shapes = [];
-  let y = 0;
-  const title = block(wrap(record.title, FONT.title, contentW), FONT.title, INK, 0, y, { role: "title" });
-  shapes.push(title);
-  y += title.height + 8;
-  const sub = block([String(record.commitLine).replace(/`/g, "")], FONT.sub, MUTED, 0, y, { role: "commit" });
-  shapes.push(sub);
-  y += sub.height + 14;
-  const summary = block(wrap(record.summary, FONT.body, Math.min(contentW, 760)), FONT.body, INK, 0, y, { role: "summary" });
-  shapes.push(summary);
-  y += summary.height + 50;
-
-  const offsetX = (contentW - graphW) / 2;
-  for (const n of nodes) { n.x += offsetX; n.y += y; n.link = noteLink(n.concept); }
-  for (const e of edges) {
-    e.points = e.points.map(([px, py]) => [px + offsetX, py + y]);
-    e.labelX += offsetX;
-    e.labelY += y;
+function layoutSequence(view, prefix) {
+  const c = new Canvas(prefix);
+  c.anchors = {};
+  const heads = view.participants.map((p) => ({ p, size: nodeSize({ ...p, label: p.label }) }));
+  const headH = Math.max(...heads.map((h) => h.size.h));
+  const longest = Math.max(0, ...view.messages.map((m) => textWidth(m.label, SMALL)));
+  const col = Math.max(190, longest + 50, ...heads.map((h) => h.size.w + 40));
+  const cx = new Map(view.participants.map((p, i) => [p.id, i * col + col / 2]));
+  const top = 0;
+  heads.forEach(({ p, size }) => {
+    const x = cx.get(p.id) - size.w / 2, y = top + headH - size.h;
+    drawNode(c, { ...p, label: p.label }, x, y, size.w, size.h);
+    c.anchors[p.id] = [{ x: x + size.w - 4, y: y - 8, dir: -1 }];
+  });
+  let y = top + headH + 56;
+  const rows = [];
+  for (const m of view.messages) {
+    rows.push({ m, y });
+    y += m.from === m.to ? 72 : 54;
   }
-  y += graphH + 50;
-
-  // Legend for the kinds that appear, plus the "new" marker.
-  const kinds = [...new Set(record.concepts.map((c) => c.kind))];
-  const legend = [];
-  let lx = 0;
-  for (const kind of kinds) {
-    const label = kind.replace(/-/g, " ");
-    legend.push({ kind, label, x: lx, y, color: KIND_COLORS[kind] });
-    lx += 28 + textWidth(label, FONT.meta) + 24;
+  for (const p of view.participants) {
+    c.add({ kind: "line", key: c.key(`life-${p.id}`), points: [[cx.get(p.id), top + headH + 8], [cx.get(p.id), y]], stroke: FAINT, strokeWidth: 1, dash: "dashed" });
   }
-  if (nodes.some((n) => n.isNew)) legend.push({ kind: "new", label: "NEW = first time in your library", x: lx, y, color: null });
-  const height = y + FONT.meta * LINE;
-  const width = Math.max(contentW, lx + 180);
-  return { width, height, shapes, nodes, edges, legend };
+  rows.forEach(({ m, y: my }, i) => {
+    const st = arrowStyle(m.style, m.status);
+    const x1 = cx.get(m.from), x2 = cx.get(m.to);
+    let points, lx, align = "center";
+    if (m.from === m.to) {
+      points = [[x1, my], [x1 + 44, my], [x1 + 44, my + 26], [x1 + 4, my + 26]];
+      lx = x1 + 54; align = "left";
+    } else {
+      const dir = Math.sign(x2 - x1);
+      points = [[x1 + dir * 2, my], [x2 - dir * 4, my]];
+      lx = (x1 + x2) / 2;
+    }
+    const g = c.key(`msg-group-${i}`);
+    c.add({ kind: "arrow", key: c.key(`msg-${i}`), points, stroke: st.stroke, strokeWidth: st.strokeWidth, dash: st.dash, head: st.head, group: g, curved: false });
+    const ty = m.from === m.to ? my + 4 : my - SMALL * LINE - 5;
+    const t = c.text([m.label], SMALL, st.textColor ?? INK, lx, ty, { align, group: g });
+    if (align === "center") t.x -= t.w / 2;
+    if (m.id) c.anchors[m.id] = [{ x: t.x + t.w + 16, y: t.y - 4, dir: 1 }];
+  });
+  return c;
+}
+
+// Markers carry no link: Excalidraw draws a link icon on every linked element. The names in the key link to the notes.
+function badge(c, n, x, y) {
+  const key = c.key(`badge-${n}-${x | 0}-${y | 0}`);
+  c.add({ kind: "ellipse", key, x: x - 12, y: y - 12, w: 24, h: 24, stroke: ACCENT, strokeWidth: 1, fill: ACCENT, dash: "solid", rough: 0.5 });
+  const t = c.text([String(n)], 14, PAPER, x, y - (14 * LINE) / 2, { align: "center", container: key });
+  t.x -= t.w / 2;
+}
+
+/**
+ * Lay out a commit: title, one framed view per system-design model, numbered concept markers on the parts
+ * where each concept lives, and a key beside the diagrams. Returns primitives both writers draw.
+ */
+export function buildScene(record, { newIds = new Set(), noteLink = () => null } = {}) {
+  const c = new Canvas(record.commit ?? "scene");
+  c.text(wrap(record.title, 28, 900), 28, INK, 0, 0, { name: "title" });
+  c.text([String(record.commitLine ?? "").replace(/`/g, "")], SMALL, MUTED, 0, 28 * LINE * wrap(record.title, 28, 900).length + 6, { name: "commit" });
+  let y = c.bounds().y1 + 64;
+
+  const number = new Map(record.concepts.map((cpt, i) => [cpt.id, i + 1]));
+  const used = { status: new Set(), edges: new Set() };
+  let right = 0;
+
+  record.views.forEach((view, vi) => {
+    const vc = view.type === "sequence" ? layoutSequence(view, `${c.prefix}:v${vi}`) : layoutGraph(view, `${c.prefix}:v${vi}`);
+    for (const cpt of record.concepts) {
+      for (const ref of cpt.appearsIn) {
+        const spot = vc.anchors[ref]?.[0];
+        if (!spot) continue;
+        badge(vc, number.get(cpt.id), spot.x, spot.y);
+        spot.x += 28 * spot.dir;
+      }
+    }
+    if (view.type === "sequence") {
+      view.participants.forEach((p) => used.status.add(p.status));
+      view.messages.forEach((m) => { used.status.add(m.status); used.edges.add(m.style); });
+    } else {
+      view.nodes.forEach((n) => used.status.add(n.status));
+      view.edges.forEach((e) => { used.status.add(e.status); used.edges.add(e.style); });
+    }
+    const b = vc.bounds();
+    const pad = 36;
+    vc.shift(pad - b.x0, y + pad - b.y0);
+    const frameKey = c.key(`frame-${vi}`);
+    const frame = { kind: "frame", key: frameKey, name: view.title, x: 0, y, w: b.w + pad * 2, h: b.h + pad * 2 };
+    c.add(frame);
+    for (const it of vc.items) { it.frame = frameKey; c.add(it); }
+    right = Math.max(right, frame.w);
+    y += frame.h + 70;
+  });
+  const diagramBottom = y - 70;
+
+  // The key: concept names beside the diagrams (explanations live in the README and notes), then line and outline meanings.
+  const px = right + 64;
+  let py = c.bounds().y0 + 92;
+  c.text(["Concepts"], 20, INK, px, py, { name: "key-title" });
+  py += 40;
+  for (const cpt of record.concepts) {
+    badge(c, number.get(cpt.id), px + 12, py + 11);
+    const name = c.text(wrap(cpt.name, 17, 250), 17, INK, px + 34, py, { link: noteLink(cpt) });
+    py += name.h + 2;
+    const meta = c.text([`${cpt.kind.replace(/-/g, " ")} · ${cpt.level}`], 13, MUTED, px + 34, py);
+    if (newIds.has(cpt.id)) c.text(["NEW"], 13, ACCENT, px + 34 + meta.w + 10, py);
+    py += meta.h + 14;
+  }
+  py += 16;
+  const keyRows = [];
+  for (const s of ["new", "changed", "existing"]) if (used.status.has(s)) keyRows.push({ status: s, word: { new: "added in this commit", changed: "changed in this commit", existing: "already there" }[s] });
+  for (const e of ["sync", "async", "data", "dependency", "reply"]) if (used.edges.has(e)) keyRows.push({ edge: e, word: EDGE[e].word });
+  if (keyRows.length) {
+    c.text(["Key"], 14, MUTED, px, py);
+    py += 26;
+    for (const row of keyRows) {
+      if (row.status) {
+        const st = look(row.status, FILL.service);
+        c.add({ kind: "rect", key: c.key(`key-${row.status}`), x: px, y: py, w: 34, h: 20, stroke: st.stroke, strokeWidth: st.strokeWidth, fill: st.fill, dash: "solid", rounded: true });
+      } else {
+        const st = EDGE[row.edge];
+        c.add({ kind: "arrow", key: c.key(`key-${row.edge}`), points: [[px, py + 10], [px + 34, py + 10]], stroke: INK, strokeWidth: 1.5, dash: st.dash, head: st.head });
+      }
+      c.text([row.word], 13, MUTED, px + 46, py + 2);
+      py += 30;
+    }
+  }
+  const b = c.bounds();
+  return { width: b.x1, height: Math.max(b.y1, diagramBottom), items: c.items };
 }

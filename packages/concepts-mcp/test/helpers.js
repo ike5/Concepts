@@ -26,7 +26,18 @@ export async function tempRepo() {
 }
 
 export const concept = (id, extra = {}) => ({
-  id, name: id.replace(/-/g, " "), kind: "pattern", level: "intermediate",
-  explanation: `What ${id} is. A second sentence that adds detail.`, whyHere: `Why ${id} was used.`,
-  files: [{ path: "src/app.js", lines: "1-3" }], ...extra,
+  id, name: id.replace(/-/g, " "), kind: "pattern", level: "intermediate", appearsIn: [],
+  explanation: `What ${id} is.`, whyHere: `Why ${id} was used.`, files: [{ path: "src/app.js", lines: "1-3" }], ...extra,
+});
+
+/** A small architecture view: api → worker → db, with the edge between api and worker named "call". */
+export const view = (extra = {}) => ({
+  type: "architecture", title: "System",
+  nodes: [
+    { id: "api", label: "API", shape: "service", status: "changed" },
+    { id: "worker", label: "Worker", shape: "service", status: "new" },
+    { id: "db", label: "DB", shape: "database" },
+  ],
+  edges: [{ id: "call", from: "api", to: "worker", label: "enqueue", style: "async", status: "new" }, { from: "worker", to: "db" }],
+  ...extra,
 });
