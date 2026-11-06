@@ -58,6 +58,17 @@
         "space-insertion",
         "fixed-point-iteration"
       ]
+    },
+    "dbab40a9b4d19f74774b13d23792904b36ded966": {
+      "shortSha": "dbab40a",
+      "date": "2026-11-06T04:38:24+00:00",
+      "subject": "Don't save automatic skips to state.json",
+      "title": "Breaking a commit feedback loop",
+      "folder": "commits/2026-11-06-dbab40a-breaking-a-commit-feedback-loop",
+      "concepts": [
+        "derived-state",
+        "feedback-loop"
+      ]
     }
   },
   "concepts": {
@@ -826,6 +837,54 @@
             {
               "path": "packages/concepts-mcp/src/scene.js",
               "lines": "separateGroups"
+            }
+          ]
+        }
+      ]
+    },
+    "derived-state": {
+      "name": "Derived vs stored state",
+      "kind": "pattern",
+      "level": "intermediate",
+      "explanation": "If a value can be computed cheaply from data you already have, compute it when needed instead of saving it. Stored copies can go stale and every write has side effects.",
+      "prerequisites": [],
+      "learnMore": [],
+      "sightings": [
+        {
+          "sha": "dbab40a9b4d19f74774b13d23792904b36ded966",
+          "shortSha": "dbab40a",
+          "date": "2026-11-06T04:38:24+00:00",
+          "title": "Breaking a commit feedback loop",
+          "folder": "commits/2026-11-06-dbab40a-breaking-a-commit-feedback-loop",
+          "whyHere": "Whether a commit only touched setup files is a fact about the commit, so it is now recomputed on every call.",
+          "files": [
+            {
+              "path": "packages/concepts-mcp/src/core.js",
+              "lines": "pending"
+            }
+          ]
+        }
+      ]
+    },
+    "feedback-loop": {
+      "name": "Self-triggering feedback loops",
+      "kind": "concept",
+      "level": "intermediate",
+      "explanation": "A process whose output becomes its own next input never settles. A common case is a tool that writes into the repository it is watching.",
+      "prerequisites": [],
+      "learnMore": [],
+      "sightings": [
+        {
+          "sha": "dbab40a9b4d19f74774b13d23792904b36ded966",
+          "shortSha": "dbab40a",
+          "date": "2026-11-06T04:38:24+00:00",
+          "title": "Breaking a commit feedback loop",
+          "folder": "commits/2026-11-06-dbab40a-breaking-a-commit-feedback-loop",
+          "whyHere": "Recording a skip changed a tracked file, which needed a commit, which the tool then saw as new.",
+          "files": [
+            {
+              "path": "packages/concepts-mcp/test/server.test.js",
+              "lines": "never dirties the output folder"
             }
           ]
         }
