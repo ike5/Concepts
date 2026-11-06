@@ -198,6 +198,61 @@ function arrowStyle(style, status) {
   return { ...e, stroke: FAINT, strokeWidth: 1.5, textColor: MUTED };
 }
 
+const GROUP_PAD = { left: 18, right: 18, top: 34, bottom: 18 };
+
+/** A boundary's box: its members' extent plus room for the title strip. */
+function groupBox(members, pos, sizes) {
+  let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+  for (const n of members) {
+    const p = pos.get(n.id), s = sizes.get(n.id);
+    x0 = Math.min(x0, p.x - s.w / 2); y0 = Math.min(y0, p.y - s.h / 2);
+    x1 = Math.max(x1, p.x + s.w / 2); y1 = Math.max(y1, p.y + s.h / 2);
+  }
+  return { x: x0 - GROUP_PAD.left, y: y0 - GROUP_PAD.top, w: x1 - x0 + GROUP_PAD.left + GROUP_PAD.right, h: y1 - y0 + GROUP_PAD.top + GROUP_PAD.bottom };
+}
+
+/**
+ * dagre doesn't know boundaries need a title strip and padding, so padded boxes can collide. Where two do,
+ * open a gap between them along the axis where they overlap least: everything past the gap moves over,
+ * edge routes included, which keeps the layout's arrangement and only adds space.
+ */
+function separateGroups(boxes, pos, routes, sizes) {
+  const overlap = (a, b) => ({ x: Math.min(a.x + a.w, b.x + b.w) - Math.max(a.x, b.x), y: Math.min(a.y + a.h, b.y + b.h) - Math.max(a.y, b.y) });
+  for (let pass = 0; pass < 40; pass++) {
+    let fixed = false;
+    for (let i = 0; i < boxes.length && !fixed; i++) for (let j = i + 1; j < boxes.length && !fixed; j++) {
+      const o = overlap(boxes[i], boxes[j]);
+      if (o.x <= 0 || o.y <= 0) continue;
+      const axis = o.x < o.y ? "x" : "y";
+      const size = axis === "x" ? "w" : "h";
+      const [first, second] = boxes[i][axis] <= boxes[j][axis] ? [boxes[i], boxes[j]] : [boxes[j], boxes[i]];
+      // The cut sits between the first box's members and the second box's members.
+      const firstEnd = first[axis] + first[size] - (axis === "x" ? GROUP_PAD.right : GROUP_PAD.bottom);
+      const secondStart = second[axis] + (axis === "x" ? GROUP_PAD.left : GROUP_PAD.top);
+      if (secondStart < firstEnd) continue; // members interleave; moving one side can't separate them
+      const cut = (firstEnd + secondStart) / 2;
+      const delta = (axis === "x" ? o.x : o.y) + 24;
+      const k = axis === "x" ? 0 : 1;
+      const moved = new Set([...pos].filter(([, p]) => p[axis] > cut).map(([id]) => id));
+      for (const id of moved) pos.get(id)[axis] += delta;
+      for (const r of routes) {
+        // Ends follow their own node, so arrows stay attached even to a node that straddles the cut.
+        const last = r.points.length - 1;
+        r.points = r.points.map((pt, n) => {
+          const q = [...pt];
+          const follows = n === 0 ? moved.has(r.from) : n === last ? moved.has(r.to) : q[k] > cut;
+          if (follows) q[k] += delta;
+          return q;
+        });
+        if (r[axis] !== undefined && r[axis] > cut) r[axis] += delta;
+      }
+      for (const b of boxes) Object.assign(b, groupBox(b.members, pos, sizes));
+      fixed = true;
+    }
+    if (!fixed) return;
+  }
+}
+
 function layoutGraph(view, prefix) {
   const c = new Canvas(prefix);
   c.anchors = {};
@@ -218,30 +273,40 @@ function layoutGraph(view, prefix) {
   });
   dagre.layout(g);
 
+  // Copy the layout out of dagre so it can be adjusted, then make room for boundary titles and padding.
+  const pos = new Map(view.nodes.map((n) => [n.id, { x: g.node(n.id).x, y: g.node(n.id).y }]));
+  const routes = view.edges.map((e, i) => {
+    const d = g.edge({ v: e.from, w: e.to, name: `e${i}` });
+    return { from: e.from, to: e.to, points: d.points.map((p) => [p.x, p.y]), x: d.x, y: d.y };
+  });
+  const boxes = view.groups.map((grp) => {
+    const members = view.nodes.filter((n) => n.group === grp.id);
+    return { grp, members, ...groupBox(members, pos, sizes) };
+  }).filter((b) => b.members.length);
+  separateGroups(boxes, pos, routes, sizes);
+
   // Boundaries first, so they sit behind the parts inside them.
-  for (const grp of view.groups) {
-    const gn = g.node(`group:${grp.id}`);
-    if (!gn || !gn.width) continue;
-    const x = gn.x - gn.width / 2 - 18, y = gn.y - gn.height / 2 - 34, w = gn.width + 36, h = gn.height + 52;
-    c.add({ kind: "rect", key: c.key(`group-${grp.id}`), x, y, w, h, stroke: MUTED, strokeWidth: 1, fill: "#f8f9fa", dash: "dashed", rounded: true });
-    const t = c.text([grp.label], SMALL, MUTED, x + 12, y + 8);
-    c.anchors[grp.id] = [{ x: x + 12 + t.w + 18, y: y + 4, dir: 1 }];
+  for (const b of boxes) {
+    const { x, y, w, h } = b;
+    c.add({ kind: "rect", key: c.key(`group-${b.grp.id}`), x, y, w, h, stroke: MUTED, strokeWidth: 1, fill: "#f8f9fa", dash: "dashed", rounded: true });
+    const t = c.text([b.grp.label], SMALL, MUTED, x + 12, y + 8);
+    c.anchors[b.grp.id] = [{ x: x + 12 + t.w + 18, y: y + 4, dir: 1 }];
   }
   const bodies = new Map();
   for (const n of view.nodes) {
-    const p = g.node(n.id);
+    const p = pos.get(n.id);
     const s = sizes.get(n.id);
     const x = p.x - s.w / 2, y = p.y - s.h / 2;
     bodies.set(n.id, drawNode(c, n, x, y, s.w, s.h));
     c.anchors[n.id] = [{ x: x + s.w - 4, y: y - 8, dir: -1 }];
   }
   view.edges.forEach((e, i) => {
-    const data = g.edge({ v: e.from, w: e.to, name: `e${i}` });
+    const data = routes[i];
     const st = arrowStyle(e.style, e.status);
-    let points = data.points.map((p) => [p.x, p.y]);
+    let points = data.points;
     if (e.from === e.to && points.length < 3) {
-      const b = g.node(e.from);
-      points = [[b.x + b.width / 2, b.y], [b.x + b.width / 2 + 34, b.y - 10], [b.x + b.width / 2 + 34, b.y + 24], [b.x + b.width / 2, b.y + 14]];
+      const b = pos.get(e.from), half = sizes.get(e.from).w / 2;
+      points = [[b.x + half, b.y], [b.x + half + 34, b.y - 10], [b.x + half + 34, b.y + 24], [b.x + half, b.y + 14]];
     }
     const arrow = c.add({ kind: "arrow", key: c.key(`edge-${i}`), points, stroke: st.stroke, strokeWidth: st.strokeWidth, dash: st.dash, head: st.head, start: bodies.get(e.from), end: bodies.get(e.to), curved: points.length > 2 });
     let lx = data.x, ly = data.y;

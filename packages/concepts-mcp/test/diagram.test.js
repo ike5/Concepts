@@ -104,3 +104,30 @@ test("checkRecord catches dangling references", () => {
   assert.match(problems, /refers to "b"/);
   assert.match(problems, /appears in "ghost"/);
 });
+
+test("boundaries never overlap each other, and parts never straddle a boundary", () => {
+  // Three groups whose padded title strips collide in a plain dagre layout.
+  const big = recordSchema.parse({
+    commit: "abcdef1", title: "Groups", summary: "s",
+    views: [{ type: "architecture", title: "v",
+      groups: [{ id: "a", label: "Alpha" }, { id: "b", label: "Beta" }, { id: "c", label: "Gamma" }],
+      nodes: [
+        { id: "u", label: "User", shape: "user" }, { id: "a1", label: "A one", shape: "service", group: "a" }, { id: "a2", label: "A two", shape: "service", group: "a" },
+        { id: "b1", label: "B one", shape: "database", group: "b" }, { id: "b2", label: "B two", shape: "queue", group: "b" },
+        { id: "c1", label: "C one", shape: "service", group: "c" }, { id: "x", label: "Outside", shape: "external" },
+      ],
+      edges: [{ from: "u", to: "a1" }, { from: "u", to: "b1" }, { from: "a1", to: "a2" }, { from: "b1", to: "b2" }, { from: "a2", to: "x" }, { from: "b2", to: "c1" }, { from: "u", to: "c1" }, { from: "x", to: "c1" }] }],
+    concepts: [{ id: "k", name: "K", kind: "pattern", level: "beginner", explanation: "e", whyHere: "w" }],
+  });
+  for (const r of [big, example]) {
+    const { items } = scene({ ...r, commitLine: "" });
+    const groups = items.filter((i) => /:group-/.test(i.key));
+    const nodes = items.filter((i) => /:node-/.test(i.key));
+    const hit = (a, b) => a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h;
+    for (let i = 0; i < groups.length; i++) for (let j = i + 1; j < groups.length; j++) assert.ok(!hit(groups[i], groups[j]), `${groups[i].key} overlaps ${groups[j].key}`);
+    for (const g of groups) for (const n of nodes) {
+      const inside = n.x >= g.x && n.y >= g.y && n.x + n.w <= g.x + g.w && n.y + n.h <= g.y + g.h;
+      assert.ok(inside || !hit(g, n), `${n.key} straddles ${g.key}`);
+    }
+  }
+});
