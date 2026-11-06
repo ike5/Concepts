@@ -1,0 +1,75 @@
+{
+  "commit": "3f9c2ab",
+  "title": "Retrying failed webhooks",
+  "summary": "Webhook deliveries used to be sent once, inline, from the billing API. Now the API writes each event to an outbox table in the same transaction as the billing change, and a separate worker delivers it, retrying with growing delays and giving up into a dead-letter queue. Receivers can tell a retry from a new event and can verify it really came from us.",
+  "views": [
+    {
+      "type": "architecture",
+      "title": "Where delivery lives now",
+      "groups": [{ "id": "platform", "label": "Our platform" }],
+      "nodes": [
+        { "id": "admin", "label": "Customer", "shape": "user", "status": "existing" },
+        { "id": "api", "label": "Billing API", "shape": "service", "group": "platform", "status": "changed" },
+        { "id": "db", "label": "Billing DB", "shape": "database", "group": "platform", "status": "existing" },
+        { "id": "outbox", "label": "Webhook outbox", "shape": "database", "group": "platform", "status": "new" },
+        { "id": "worker", "label": "Delivery worker", "shape": "service", "group": "platform", "status": "new" },
+        { "id": "dlq", "label": "Dead letters", "shape": "queue", "group": "platform", "status": "new" },
+        { "id": "keys", "label": "Signing keys", "shape": "storage", "group": "platform", "status": "existing" },
+        { "id": "endpoint", "label": "Customer endpoint", "shape": "external", "status": "existing" }
+      ],
+      "edges": [
+        { "from": "admin", "to": "api", "label": "upgrade plan", "style": "sync", "status": "existing" },
+        { "id": "tx", "from": "api", "to": "db", "label": "update plan", "style": "data", "status": "existing" },
+        { "id": "enqueue", "from": "api", "to": "outbox", "label": "same transaction", "style": "data", "status": "new" },
+        { "from": "worker", "to": "outbox", "label": "poll due", "style": "sync", "status": "new" },
+        { "id": "deliver", "from": "worker", "to": "endpoint", "label": "POST /hooks", "style": "sync", "status": "new" },
+        { "id": "give-up", "from": "worker", "to": "dlq", "label": "after 8 tries", "style": "async", "status": "new" },
+        { "from": "worker", "to": "keys", "label": "HMAC key", "style": "dependency", "status": "new" }
+      ]
+    },
+    {
+      "type": "sequence",
+      "title": "One failed attempt",
+      "participants": [
+        { "id": "s-worker", "label": "Delivery worker", "shape": "service", "status": "new" },
+        { "id": "s-outbox", "label": "Webhook outbox", "shape": "database", "status": "new" },
+        { "id": "s-endpoint", "label": "Customer endpoint", "shape": "external", "status": "existing" }
+      ],
+      "messages": [
+        { "from": "s-worker", "to": "s-outbox", "label": "claim due event", "style": "sync", "status": "new" },
+        { "id": "sign", "from": "s-worker", "to": "s-worker", "label": "sign payload", "style": "sync", "status": "new" },
+        { "id": "post", "from": "s-worker", "to": "s-endpoint", "label": "POST + Idempotency-Key", "style": "sync", "status": "new" },
+        { "from": "s-endpoint", "to": "s-worker", "label": "503", "style": "reply", "status": "existing" },
+        { "id": "reschedule", "from": "s-worker", "to": "s-outbox", "label": "next try in 2^n s ± jitter", "style": "sync", "status": "new" }
+      ]
+    }
+  ],
+  "concepts": [
+    { "id": "transactional-outbox", "name": "Transactional outbox", "kind": "pattern", "level": "advanced", "appearsIn": ["enqueue", "outbox"],
+      "explanation": "Write the message you need to send into a table in the same database transaction as the business change. A separate process sends it later. Either both happen or neither does, so you never charge someone without telling them.",
+      "whyHere": "The plan change and its webhook event are committed together; delivery moved out of the request.",
+      "files": [{ "path": "src/billing/upgrade.ts", "lines": "40-58" }, { "path": "migrations/0041_outbox.sql" }],
+      "learnMore": [{ "title": "Transactional outbox (microservices.io)", "url": "https://microservices.io/patterns/data/transactional-outbox.html" }] },
+    { "id": "exponential-backoff", "name": "Exponential backoff", "kind": "algorithm", "level": "intermediate", "appearsIn": ["reschedule"],
+      "explanation": "Wait longer after each failure, doubling the delay each time (1s, 2s, 4s, 8s…), so a struggling server gets room to recover instead of more traffic.",
+      "whyHere": "Each failed delivery is rescheduled at base × 2^attempt, capped at one hour.",
+      "files": [{ "path": "src/webhooks/retry.ts", "lines": "12-40" }],
+      "learnMore": [{ "title": "Exponential backoff and jitter (AWS)", "url": "https://aws.amazon.com/blogs/architecture/exponential-backoff-and-jitter/" }] },
+    { "id": "jitter", "name": "Jitter", "kind": "algorithm", "level": "intermediate", "appearsIn": ["reschedule"],
+      "explanation": "Add randomness to each wait, so clients that failed together don't all retry at the same instant.",
+      "whyHere": "The delay is picked at random between 0 and the backoff value (full jitter).",
+      "files": [{ "path": "src/webhooks/retry.ts", "lines": "22" }], "prerequisites": ["Exponential backoff"] },
+    { "id": "idempotency-key", "name": "Idempotency keys", "kind": "pattern", "level": "intermediate", "appearsIn": ["post", "deliver"],
+      "explanation": "A unique ID sent with a request so the receiver can recognise a repeat and skip doing the work twice.",
+      "whyHere": "Retries are now normal, so every delivery carries the event ID as Idempotency-Key.",
+      "files": [{ "path": "src/webhooks/send.ts", "lines": "31" }] },
+    { "id": "dead-letter-queue", "name": "Dead-letter queue", "kind": "architecture", "level": "intermediate", "appearsIn": ["dlq", "give-up"],
+      "explanation": "Where messages go after they keep failing: they stop retrying forever but aren't lost, and someone can inspect and replay them.",
+      "whyHere": "After 8 attempts a delivery moves to dead letters for manual replay.",
+      "files": [{ "path": "src/webhooks/retry.ts", "lines": "52-60" }] },
+    { "id": "hmac-signature", "name": "HMAC signatures", "kind": "security", "level": "advanced", "appearsIn": ["sign", "keys"],
+      "explanation": "A hash of the message made with a shared secret. The receiver recomputes it to prove the message came from you and wasn't altered.",
+      "whyHere": "Payloads are signed with SHA-256 HMAC plus a timestamp so receivers can reject forged or replayed webhooks.",
+      "files": [{ "path": "src/webhooks/sign.ts" }] }
+  ]
+}

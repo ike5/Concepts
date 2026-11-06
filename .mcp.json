@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "concepts": {
+      "command": "node",
+      "args": ["packages/concepts-mcp/src/index.js"]
+    }
+  }
+}
