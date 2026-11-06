@@ -1,16 +1,39 @@
 {
   "name": "concepts-mcp",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "MCP server that turns your latest commits into hand-drawn Excalidraw diagrams of the concepts they use, so you keep learning from code your AI wrote.",
-  "keywords": ["mcp", "mcp-server", "excalidraw", "learning", "git", "diagram", "claude", "codex", "cursor"],
+  "keywords": [
+    "mcp",
+    "mcp-server",
+    "excalidraw",
+    "learning",
+    "git",
+    "diagram",
+    "claude",
+    "codex",
+    "cursor"
+  ],
   "homepage": "https://ike5.github.io/concepts/",
   "bugs": "https://github.com/ike5/concepts/issues",
   "license": "PolyForm-Noncommercial-1.0.0",
   "type": "module",
-  "bin": { "concepts-mcp": "src/index.js" },
-  "files": ["src/*.js", "fonts/", "README.md", "LICENSE.md"],
-  "repository": { "type": "git", "url": "git+https://github.com/ike5/concepts.git", "directory": "packages/concepts-mcp" },
-  "engines": { "node": ">=20" },
+  "bin": {
+    "concepts-mcp": "src/index.js"
+  },
+  "files": [
+    "src/*.js",
+    "fonts/",
+    "README.md",
+    "LICENSE.md"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ike5/concepts.git",
+    "directory": "packages/concepts-mcp"
+  },
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "start": "node src/index.js",
     "test": "node --test test/diagram.test.js test/server.test.js",
@@ -25,6 +48,9 @@
   "devDependencies": {
     "@modelcontextprotocol/client": "^2.4.0"
   },
-  "publishConfig": { "access": "public", "provenance": true },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
   "mcpName": "io.github.ike5/concepts"
 }
